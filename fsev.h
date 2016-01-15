@@ -1,3 +1,5 @@
+#ifndef _INCLUDE_FSEV_H_
+#define _INCLUDE_FSEV_H_
 // fsevents is available here:
 // http://www.opensource.apple.com/source/xnu/xnu-792/bsd/sys/fsevents.h
 //#include <sys/fsevents.h> would have been nice, but it's no longer available, as Apple
@@ -84,4 +86,6 @@ typedef struct fsevent_clone_args {
 	int32_t *fd;
 	int32_t  pad2;
 } fsevent_clone_args;
+#endif
+
 #endif

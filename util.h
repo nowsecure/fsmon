@@ -1,8 +1,13 @@
+#ifndef _INCLUDE_UTIL_H_
+#define _INCLUDE_UTIL_H_
+
+#include <stdbool.h>
+
 const char *fm_typestr(uint32_t Type);
 const char *fm_colorstr(uint32_t type);
 void hexdump(const uint8_t *buf, unsigned int len, int w);
 const char * getProcName(int pid, int *ppid);
-int is_directory (const char *str);
+bool is_directory (const char *str);
 int copy_file(const char *src, const char *dst);
 
 /* plain colors */
@@ -36,3 +41,4 @@ int copy_file(const char *src, const char *dst);
 #define Color_BCYAN     "\x1b[1;36m"
 #define Color_BBLUE     "\x1b[1;34m"
 #define Color_BGRAY     "\x1b[1;38m"
+#endif

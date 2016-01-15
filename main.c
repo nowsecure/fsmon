@@ -1,4 +1,4 @@
-/* ios-fsmon -- Copyright NowSecure 2015 - pancake@nowsecure.com  */
+/* ios-fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <string.h>
@@ -9,7 +9,6 @@
 static FileMonitor fm = {0};
 
 static int callback(FileMonitor *fm, FileMonitorEvent *ev) {
-	char path[4096];
 	if (fm->child) {
 		if (fm->pid) {
 			if (ev->pid != fm->pid)

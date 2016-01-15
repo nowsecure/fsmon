@@ -7,7 +7,7 @@ IOS_SYSROOT=$(shell xcrun --sdk iphoneos --show-sdk-path)
 IOS_CFLAGS+=-isysroot ${IOS_SYSROOT}
 IOS_CFLAGS+=-fembed-bitcode
 IOS_CFLAGS+=-flto
-IOS_CFLAGS+=-O3
+IOS_CFLAGS+=-O3 -Wall
 IOS_CC=$(shell xcrun --sdk iphoneos --find clang) $(IOS_CFLAGS)
 
 # iWatch

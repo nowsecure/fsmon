@@ -1,4 +1,4 @@
-/* ios-fsmon -- Copyright NowSecure 2015 - pancake@nowsecure.com  */
+/* ios-fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
 
 #include <ctype.h>
 #include <stdio.h>
@@ -19,16 +19,16 @@
  */
 void hexdump(const uint8_t *buf, unsigned int len, int w) {
 	unsigned int i, j;
-	for(i=0;i<len;i+=w) {
-		printf("0x%08x: ", i);
-		for(j=i;j<i+w;j++) {
-			if(j<len) printf(j%2?"%02x ":"%02x", buf[j]);
-			else printf(j%2?"   ":"  ");
+	for (i=0;i<len;i+=w) {
+		printf ("0x%08x: ", i);
+		for (j=i; j < i + w; j++) {
+			if (j<len) printf (j%2?"%02x ":"%02x", buf[j]);
+			else printf (j%2?"   ":"  ");
 		}
 		printf(" ");
-		for(j=i;j<i+w;j++)
-			printf("%c", isprint(buf[j])?buf[j]:'.');
-		printf("\n");
+		for (j=i;j<i+w;j++)
+			printf ("%c", isprint(buf[j])?buf[j]:'.');
+		printf ("\n");
 	}
 }
 
@@ -76,13 +76,10 @@ const char *fm_colorstr(uint32_t type) {
 }
 
 const char * getProcName(int pid, int *ppid) {
-	static char procName[1024];
+	static char procName[1024] = {0};
 	struct kinfo_proc * kinfo = (struct kinfo_proc*)&procName;
 	size_t len = 1000;
-	int rc;
-	int mib[4];
-
-	memset (procName, '\0', 1024);
+	int rc, mib[4];
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_PROC;
@@ -94,8 +91,6 @@ const char * getProcName(int pid, int *ppid) {
 		exit (1);
 	}
 
-	//printf ("GOT PID: %d and rc: %d -  %s\n", mib[3],
-	// rc, ((struct kinfo_proc *)procName)->kp_proc.p_comm);
 	if (ppid) {
 		*ppid = kinfo->kp_eproc.e_ppid;
 	}
@@ -103,12 +98,12 @@ const char * getProcName(int pid, int *ppid) {
 	return kinfo->kp_proc.p_comm;
 }
 
-int is_directory (const char *str) {
+bool is_directory (const char *str) {
         struct stat buf = {0};
-        if (!str||!*str) return 0;
+        if (!str || !*str) return 0;
         if (stat (str, &buf)==-1) return 0;
         if ((S_IFBLK & buf.st_mode) == S_IFBLK) return 0;
-        return (S_IFDIR==(S_IFDIR & buf.st_mode))? 1: 0;
+        return S_IFDIR == (S_IFDIR & buf.st_mode);
 }
 
 int copy_file(const char *src, const char *dst) {
@@ -131,7 +126,7 @@ int copy_file(const char *src, const char *dst) {
 	}
 	for (;;) {
 		count = read (fd_src, buf, sizeof (buf));
-		if (count<1) {
+		if (count < 1) {
 			break;
 		}
 		write (fd_dst, buf, count);
