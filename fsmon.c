@@ -1,4 +1,4 @@
-/* ios-fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
+/* fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <unistd.h>
@@ -11,6 +11,7 @@
 #include <errno.h>
 #include "fsmon.h"
 
+#if __APPLE__
 typedef struct __attribute__ ((__packed__)) {
 	uint16_t type;
 	uint16_t len;
@@ -50,9 +51,13 @@ static int parseArg(FileMonitorEvent *ev, uint8_t *arg) {
 	case FSE_ARG_MODE:
 		ev->mode = fme->val.u32;
 		break;
-	case FSE_ARG_INO: ev->inode = fme->val.u32; break;
-	case FSE_ARG_UID: ev->uid = fme->val.u32; break;
-	case FSE_ARG_GID: ev->gid = fme->val.u32; break;
+	case FSE_ARG_INO:
+		ev->inode = fme->val.u32;
+		break;
+	case FSE_ARG_UID: ev->uid = fme->val.u32;
+		break;
+	case FSE_ARG_GID: ev->gid = fme->val.u32;
+		break;
 	case FSE_ARG_PATH: // Not really used... Implement this later..
 		IF_FM_DEBUG eprintf ("TODO: FSE_ARG_PATH\n");
 		break;
@@ -193,3 +198,17 @@ int fm_end (FileMonitor *fm) {
 	memset (fm, 0, sizeof (FileMonitor));
 	return 0;
 }
+
+#elif __linux__
+
+#warning Not yet supported on Linux
+
+int fm_begin (FileMonitor *fm) {
+}
+
+int fm_end (FileMonitor *fm) {
+}
+
+#else
+#error Unsupported platform
+#endif

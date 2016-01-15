@@ -1,4 +1,4 @@
-/* ios-fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
+/* fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <string.h>
@@ -8,30 +8,30 @@
 
 static FileMonitor fm = {0};
 
-static int callback(FileMonitor *fm, FileMonitorEvent *ev) {
+static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
 		if (fm->pid) {
 			if (ev->pid != fm->pid)
 				if (ev->ppid != fm->pid)
-					return 0;
+					return false;
 		}
 	} else {
 		if (fm->pid) {
 			if (ev->pid != fm->pid)
-				return 0;
+				return false;
 		}
 	}
 	if (fm->root && ev->file) {
 		if (strncmp (ev->file, fm->root, strlen (fm->root)))
-			return 0;
+			return false;
 	}
 	if (fm->link && ev->file) {
 		if (!strncmp (ev->file, fm->link, strlen (fm->link)))
-			return 0;
+			return false;
 	}
 	if (fm->proc && ev->proc) {
 		if (!strstr (ev->proc, fm->proc))
-			return 0;
+			return false;
 	}
 	if (fm->json) {
 		printf ("{\"filename\":\"%s\",\"pid\":%d,"
@@ -84,35 +84,32 @@ static int callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	}
 	if (fm->link) {
 		int i;
-		char destination[1024];
-		const char *source = ev->file;
+		char dst[1024];
+		const char *src = ev->file;
 		char *fname = strdup (ev->file);
-		for (i=0;fname[i];i++) {
-			if (fname[i]=='/') {
+		for (i=0; fname[i]; i++) {
+			if (fname[i] == '/') {
 				fname[i] = '_';
 			}
 		}
 		if (ev->newfile) {
-			source = ev->newfile;
+			src = ev->newfile;
 		}
-		if (is_directory (source)) {
+		if (is_directory (src)) {
 			eprintf ("[I] Directories not copied\n");
 		} else {
-			snprintf (destination, sizeof (destination),
-				"%s/%s", fm->link, fname);
-			if (!copy_file (source, destination)) {
-				eprintf ("[E] Error copying %s\n", destination);
+			snprintf (dst, sizeof (dst), "%s/%s", fm->link, fname);
+			if (!copy_file (src, dst)) {
+				eprintf ("[E] Error copying %s\n", dst);
 			}
 		}
 		free (fname);
 	}
-	return 0;
+	return false;
 }
 
 static void help (const char *argv0) {
-	eprintf ("Usage: %s [-jc] [-a sec] [-b dir] [-p pid] [-P proc] [path]\n",
-		argv0);
-	eprintf (
+	eprintf ("Usage: %s [-jc] [-a sec] [-b dir] [-p pid] [-P proc] [path]\n"
 		" -a [sec]  stop monitoring after N seconds (alarm)\n"
 		" -b [dir]  backup files to DIR folder (EXPERIMENTAL)\n"
 		" -c        follow children of -p PID\n"
@@ -121,18 +118,19 @@ static void help (const char *argv0) {
 		" -f        show only filename (no path)\n"
 		" -p [pid]  only show events from this pid\n"
 		" -P [proc] events only from process name\n"
-	);
+		" [path]    only get events from this path\n"
+		, argv0);
 }
 
 static void control_c (int sig) {
-	fm.stop = 1;
+	fm.stop = true;
 	fm_end (&fm);
 }
 
 int main (int argc, char **argv) {
 	int c, ret = 0;
 
-	while ((c = getopt (argc, argv, "a:chb:fjp:P:")) != -1) {
+	while ((c = getopt (argc, argv, "a:chb:d:fjp:P:")) != -1) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
@@ -141,26 +139,26 @@ int main (int argc, char **argv) {
 				return 1;
 			}
 			break;
-		case 'f':
-			fm.fileonly = 1;
-			break;
 		case 'b':
 			fm.link = optarg;
 			break;
 		case 'c':
-			fm.child = 1;
+			fm.child = true;
 			break;
 		case 'h':
 			help (argv[0]);
 			return 0;
-		case 'j':
-			fm.json = 1;
+		case 'f':
+			fm.fileonly = true;
 			break;
-		case 'P':
-			fm.proc = optarg;
+		case 'j':
+			fm.json = true;
 			break;
 		case 'p':
 			fm.pid = atoi (optarg);
+			break;
+		case 'P':
+			fm.proc = optarg;
 			break;
 		}
 	}

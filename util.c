@@ -1,4 +1,4 @@
-/* ios-fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
+/* fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
 
 #include <ctype.h>
 #include <stdio.h>
@@ -19,14 +19,14 @@
  */
 void hexdump(const uint8_t *buf, unsigned int len, int w) {
 	unsigned int i, j;
-	for (i=0;i<len;i+=w) {
+	for (i = 0; i < len; i += w) {
 		printf ("0x%08x: ", i);
-		for (j=i; j < i + w; j++) {
+		for (j = i; j < i + w; j++) {
 			if (j<len) printf (j%2?"%02x ":"%02x", buf[j]);
 			else printf (j%2?"   ":"  ");
 		}
 		printf(" ");
-		for (j=i;j<i+w;j++)
+		for (j = i; j < i + w; j++)
 			printf ("%c", isprint(buf[j])?buf[j]:'.');
 		printf ("\n");
 	}
@@ -49,7 +49,7 @@ const char *fm_typestr(uint32_t type) {
 		__ (FSE_XATTR_MODIFIED),
 		__ (FSE_XATTR_REMOVED),
 	};
-	if (type<TYPES_COUNT) {
+	if (type < TYPES_COUNT) {
 		return types[type];
 	}
 	return "";
@@ -69,7 +69,7 @@ const char *fm_colorstr(uint32_t type) {
 		Color_YELLOW, // FSE_XATTR_MODIFIED,
 		Color_RED,    // FSE_XATTR_REMOVED,
 	};
-	if (type<TYPES_COUNT) {
+	if (type < TYPES_COUNT) {
 		return colors[type];
 	}
 	return "";
@@ -91,22 +91,19 @@ const char * getProcName(int pid, int *ppid) {
 		exit (1);
 	}
 
-	if (ppid) {
-		*ppid = kinfo->kp_eproc.e_ppid;
-	}
-
+	if (ppid) *ppid = kinfo->kp_eproc.e_ppid;
 	return kinfo->kp_proc.p_comm;
 }
 
 bool is_directory (const char *str) {
         struct stat buf = {0};
-        if (!str || !*str) return 0;
-        if (stat (str, &buf)==-1) return 0;
-        if ((S_IFBLK & buf.st_mode) == S_IFBLK) return 0;
+        if (!str || !*str) return false;
+        if (stat (str, &buf) == -1) return false;
+        if ((S_IFBLK & buf.st_mode) == S_IFBLK) return false;
         return S_IFDIR == (S_IFDIR & buf.st_mode);
 }
 
-int copy_file(const char *src, const char *dst) {
+bool copy_file(const char *src, const char *dst) {
 	char buf[4096];
 	struct stat stat_src;
 	int count, mode = 0640;
@@ -114,7 +111,7 @@ int copy_file(const char *src, const char *dst) {
 	fd_src = open (src, O_RDONLY);
 	if (fd_src == -1) {
 		perror ("open");
-		return 0;
+		return false;
 	}
 	if (!fstat (fd_src, &stat_src)) {
 		mode = stat_src.st_mode;
@@ -122,16 +119,16 @@ int copy_file(const char *src, const char *dst) {
 	fd_dst = open (dst, O_RDWR | O_CREAT | O_TRUNC, mode);
 	if (fd_dst == -1) {
 		close (fd_src);
-		return 0;
+		return false;
 	}
 	for (;;) {
 		count = read (fd_src, buf, sizeof (buf));
 		if (count < 1) {
 			break;
 		}
-		write (fd_dst, buf, count);
+		(void) write (fd_dst, buf, count);
 	}
 	close (fd_src);
 	close (fd_dst);
-	return 1;
+	return true;
 }

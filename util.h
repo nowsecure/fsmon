@@ -8,7 +8,7 @@ const char *fm_colorstr(uint32_t type);
 void hexdump(const uint8_t *buf, unsigned int len, int w);
 const char * getProcName(int pid, int *ppid);
 bool is_directory (const char *str);
-int copy_file(const char *src, const char *dst);
+bool copy_file(const char *src, const char *dst);
 
 /* plain colors */
 #define Color_RESET      "\x1b[0m"

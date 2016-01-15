@@ -34,16 +34,16 @@ typedef struct {
 	const char *proc;
 	const char *link;
 	int pid;
-	int json;
-	int stop;
 	int child;
 	int alarm;
 	int fd;
-	int fileonly;
+	bool json;
+	bool stop;
+	bool fileonly;
 	uint64_t count;
 } FileMonitor;
 
-typedef int (*FileMonitorCallback)(FileMonitor *fm, FileMonitorEvent *ev);
+typedef bool (*FileMonitorCallback)(FileMonitor *fm, FileMonitorEvent *ev);
 
 int fm_begin (FileMonitor *fm);
 int fm_loop (FileMonitor *fm, FileMonitorCallback cb);
