@@ -6,10 +6,12 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
+#if __APPLE__
 #include <sys/sysctl.h>
-#include <sys/stat.h>
+#endif
 #include <errno.h>
 #include "fsmon.h"
 /*

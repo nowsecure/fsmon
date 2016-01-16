@@ -117,6 +117,7 @@ static void help (const char *argv0) {
 		" -f        show only filename (no path)\n"
 		" -p [pid]  only show events from this pid\n"
 		" -P [proc] events only from process name\n"
+		" -v        show version\n"
 		" [path]    only get events from this path\n"
 		, argv0);
 }
@@ -131,7 +132,7 @@ static void control_c (int sig) {
 int main (int argc, char **argv) {
 	int c, ret = 0;
 
-	while ((c = getopt (argc, argv, "a:chb:d:fjp:P:")) != -1) {
+	while ((c = getopt (argc, argv, "a:chb:d:fjp:P:v")) != -1) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
@@ -161,6 +162,9 @@ int main (int argc, char **argv) {
 		case 'P':
 			fm.proc = optarg;
 			break;
+		case 'v':
+			printf ("fsmon %s\n", FSMON_VERSION);
+			return 0;
 		}
 	}
 	if (optind<argc) {

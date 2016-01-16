@@ -12,11 +12,11 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include <sys/sysctl.h>
+//#include <sys/sysctl.h>
 #include "fsmon.h"
 
 #ifndef HAVE_FANOTIFY
-#define HAVE_FANOTIFY 1
+#define HAVE_FANOTIFY 0
 #endif
 
 #include <sys/inotify.h>
@@ -25,24 +25,30 @@
 #include <linux/fanotify.h>
 #endif
  
+/* INOTIFY */
+static int fd = -1;
 #define BUF_LEN (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 
-static int fd = -1;
+#if HAVE_FANOTIFY
 static int fan_fd = -1;
 static fd_set rfds;
+#endif
 
 static void fm_control_c() {
 	if (fd != -1) {
 		close (fd);
 		fd = -1;
 	}
+#if HAVE_FANOTIFY
 	if (fan_fd != -1) {
 		close (fan_fd);
 		fan_fd = -1;
 	}
+#endif
 }
 
 /* fanotify fallback */
+#if HAVE_FANOTIFY
 static void usr1_handler(int sig __attribute__((unused)),
 		siginfo_t *si __attribute__((unused)), void *unused __attribute__((unused))) {
 	fanotify_mark (fan_fd, FAN_MARK_FLUSH, 0, 0, NULL);
@@ -176,6 +182,7 @@ fail:
 	perror ("fanotify_loop");
 	return false;
 }
+#endif
 
 /* inotify fallback */
 
@@ -212,8 +219,10 @@ static void parseEvent(FileMonitor *fm, struct inotify_event *i, FileMonitorEven
 }
 
 int fm_begin (FileMonitor *fm) {
+#if HAVE_FANOTIFY
 	int rc = fa_begin (fm);
 	if (rc) return (rc == 1);
+#endif
 	eprintf ("Warning: inotify can't monitor subdirectories\n");
 	fm->control_c = fm_control_c;
 	fd = inotify_init ();
@@ -231,11 +240,11 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	FileMonitorEvent ev = {0};
 	int c;
 	char *p;
-
+#if HAVE_FANOTIFY
 	if (fan_fd != -1 && fd == -1) {
 		return fa_loop (fm, cb);
 	}
-
+#endif
 	for (;;) {
 		c = read (fd, buf, BUF_LEN);
 		if (fm->stop) break;
@@ -252,9 +261,11 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 }
 
 int fm_end (FileMonitor *fm) {
+#if HAVE_FANOTIFY
 	if (fan_fd != -1)
 		close (fan_fd);
 	fan_fd = -1;
+#endif
 	if (fd != -1)
 		close (fd);
 	fd = -1;
