@@ -41,6 +41,7 @@ typedef struct {
 	bool stop;
 	bool fileonly;
 	uint64_t count;
+	void (*control_c)();
 } FileMonitor;
 
 typedef bool (*FileMonitorCallback)(FileMonitor *fm, FileMonitorEvent *ev);

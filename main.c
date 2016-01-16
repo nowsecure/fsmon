@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <getopt.h>
+#include <inttypes.h>
 #include "fsmon.h"
 
 static FileMonitor fm = {0};
@@ -41,7 +43,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			printf ("\"inode\":%d,", ev->inode);
 		}
 		if (ev->tstamp) {
-			printf ("\"timestamp\":%lld,", ev->tstamp);
+			printf ("\"timestamp\":%" PRId64 ",", ev->tstamp);
 		}
 		if (ev->inode) {
 			printf ("\"dev\":{\"major\":%d,\"minor\":%d},",
@@ -63,23 +65,20 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	} else {
 		if (fm->fileonly) {
 			const char *p = ev->file;
-			for (p=p+strlen (p);p>ev->file; p--) {
+			for (p = p + strlen (p); p > ev->file; p--) {
 				if (*p == '/')
-					ev->file = p+1;
+					ev->file = p + 1;
 			}
 		}
 		if (ev->type == FSE_RENAME) {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s -> %s\n",
 				fm_colorstr (ev->type), fm_typestr (ev->type), Color_RESET,
-				ev->pid, 
-				Color_MAGENTA, ev->proc, Color_RESET,
-				ev->file, ev->newfile);
+				ev->pid, Color_MAGENTA, ev->proc? ev->proc: "", Color_RESET, ev->file,
+				ev->newfile);
 		} else {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s\n",
 				fm_colorstr (ev->type), fm_typestr (ev->type), Color_RESET,
-				ev->pid, 
-				Color_MAGENTA, ev->proc, Color_RESET,
-				ev->file);
+				ev->pid, Color_MAGENTA, ev->proc? ev->proc: "", Color_RESET, ev->file);
 		}
 	}
 	if (fm->link) {
@@ -125,6 +124,8 @@ static void help (const char *argv0) {
 static void control_c (int sig) {
 	fm.stop = true;
 	fm_end (&fm);
+	if (fm.control_c)
+		fm.control_c ();
 }
 
 int main (int argc, char **argv) {
@@ -174,6 +175,7 @@ int main (int argc, char **argv) {
 	}
 	if (fm_begin (&fm)) {
 		signal (SIGINT, control_c);
+		signal (SIGPIPE, exit);
 		fm_loop (&fm, callback);
 	} else {
 		ret = 1;

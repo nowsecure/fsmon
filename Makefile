@@ -1,5 +1,21 @@
 ARCHS=armv7 arm64
 
+ifeq ($(shell uname),Linux)
+
+CFLAGS+=-Wall
+
+all: fsmon
+
+fsmon:
+	$(CC) -o fsmon $(CFLAGS) $(LDFLAGS) fsmon-linux.c main.c util.c
+
+clean:
+	rm -f fsmon
+
+.PHONY: all fsmon clean
+
+else
+
 # iOS
 IOS_ARCHS=$(addprefix -arch ,$(ARCHS))
 IOS_CFLAGS+=$(IOS_ARCHS)
@@ -27,15 +43,15 @@ all: ios osx wch
 	#scp fsmon-ios root@192.168.1.50:.
 
 ios:
-	$(IOS_CC) $(CFLAGS) -o fsmon-ios fsmon.c main.c util.c
+	$(IOS_CC) $(CFLAGS) -o fsmon-ios fsmon-darwin.c main.c util.c
 	strip fsmon-ios
 
 osx:
-	$(CC) $(CFLAGS) -o fsmon-osx fsmon.c main.c util.c
+	$(CC) $(CFLAGS) -o fsmon-osx fsmon-darwin.c main.c util.c
 	strip fsmon-osx
 
 wch:
-	$(WCH_CC) $(CFLAGS) -o fsmon-wch fsmon.c main.c util.c
+	$(WCH_CC) $(CFLAGS) -o fsmon-wch fsmon-darwin.c main.c util.c
 
 fat:
 	lipo fsmon-ios -thin armv7 -output fsmon-ios-armv7
@@ -50,3 +66,7 @@ fat:
 clean:
 	rm -f fsmon-osx fsmon-ios
 	rm -rf fsmon*.dSYM
+
+.PHONY: all ios osx wch fat clean
+
+endif

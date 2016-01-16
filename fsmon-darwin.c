@@ -1,5 +1,6 @@
 /* fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
 
+#if __APPLE__
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -11,7 +12,6 @@
 #include <errno.h>
 #include "fsmon.h"
 
-#if __APPLE__
 typedef struct __attribute__ ((__packed__)) {
 	uint16_t type;
 	uint16_t len;
@@ -162,9 +162,7 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 
 			int arg_len = parseArg (&ev, buf + buf_idx);
 			if (arg_len == -1) {
-				if (cb) {
-					cb (fm, &ev);
-				}
+				if (cb) cb (fm, &ev);
 				memset (&ev, 0, sizeof (ev));
 				arg_len = 2;
 			}
@@ -172,7 +170,7 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 				continue;
 			}
 			buf_idx += arg_len;
-			while (arg_len >2) {
+			while (arg_len > 2) {
 				arg_len = parseArg (&ev, buf + buf_idx);
 				if (arg_len == -1) {
 					if (cb) {
@@ -185,7 +183,7 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 			}
 		}
 		if (rc > buf_idx) {
-			eprintf ("*** Warning: Some events may be lost\n");
+			eprintf ("Warning: Some events may be lost\n");
 		}
 		buf_idx = 0;
 	}
@@ -197,16 +195,6 @@ int fm_end (FileMonitor *fm) {
 		close (fm->fd);
 	memset (fm, 0, sizeof (FileMonitor));
 	return 0;
-}
-
-#elif __linux__
-
-#warning Not yet supported on Linux
-
-int fm_begin (FileMonitor *fm) {
-}
-
-int fm_end (FileMonitor *fm) {
 }
 
 #else

@@ -1,5 +1,6 @@
 #ifndef _INCLUDE_FSEV_H_
 #define _INCLUDE_FSEV_H_
+
 // fsevents is available here:
 // http://www.opensource.apple.com/source/xnu/xnu-792/bsd/sys/fsevents.h
 //#include <sys/fsevents.h> would have been nice, but it's no longer available, as Apple
@@ -35,6 +36,9 @@ typedef struct kfs_event_arg {
 #define FSE_FINDER_INFO_CHANGED  6
 #define FSE_CREATE_DIR           7
 #define FSE_CHOWN                8
+
+/* linux specific */
+#define FSE_OPEN -2
 
 #define OLD_FSE 1
 

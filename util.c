@@ -49,35 +49,34 @@ const char *fm_typestr(uint32_t type) {
 		__ (FSE_XATTR_MODIFIED),
 		__ (FSE_XATTR_REMOVED),
 	};
-	if (type < TYPES_COUNT) {
-		return types[type];
-	}
-	return "";
+	if (type == FSE_OPEN)
+		return "FSE_OPEN";
+	return (type < TYPES_COUNT && types[type])? types[type]: "";
 }
 
 const char *fm_colorstr(uint32_t type) {
 	const char *colors[TYPES_COUNT] = {
-		Color_GREEN,  // FSE_CREATE_FILE
+		Color_MAGENTA,// FSE_CREATE_FILE
 		Color_RED,    // FSE_DELETE
 		Color_YELLOW, // FSE_STAT_CHANGED
 		Color_GREEN,  // FSE_RENAME
 		Color_YELLOW, // FSE_CONTENT_MODIFIED
-		Color_GREEN,  // FSE_CREATE_DIR
+		Color_BLUE,   // FSE_CREATE_DIR
 		Color_YELLOW, // FSE_CHOWN
 		Color_GREEN,  // FSE_EXCHANGE
 		Color_YELLOW, // FSE_FINDER_INFO_CHANGED
 		Color_YELLOW, // FSE_XATTR_MODIFIED,
 		Color_RED,    // FSE_XATTR_REMOVED,
 	};
-	if (type < TYPES_COUNT) {
-		return colors[type];
-	}
-	return "";
+	if (type == FSE_OPEN)
+		return Color_GREEN;
+	return (type < TYPES_COUNT)? colors[type]: "";
 }
 
-const char * getProcName(int pid, int *ppid) {
-	static char procName[1024] = {0};
-	struct kinfo_proc * kinfo = (struct kinfo_proc*)&procName;
+const char *getProcName(int pid, int *ppid) {
+	static char path[1024] = {0};
+#if __APPLE__
+	struct kinfo_proc * kinfo = (struct kinfo_proc*)&path;
 	size_t len = 1000;
 	int rc, mib[4];
 
@@ -86,13 +85,42 @@ const char * getProcName(int pid, int *ppid) {
 	mib[2] = KERN_PROC_PID;
 	mib[3] = pid;
 
-	if ((rc = sysctl (mib, 4, procName, &len, NULL,0)) < 0) {
+	if ((rc = sysctl (mib, 4, path, &len, NULL, 0)) < 0) {
 		perror("trace facility failure, KERN_PROC_PID\n");
 		exit (1);
 	}
 
 	if (ppid) *ppid = kinfo->kp_eproc.e_ppid;
 	return kinfo->kp_proc.p_comm;
+#elif __linux__
+	char *p, *q;
+	int fd;
+	snprintf (path, sizeof (path), "/proc/%d/stat", pid);
+	fd = open (path, O_RDONLY);
+	if (fd == -1) {
+		eprintf ("Cannot open '%s'\n", path);
+		return NULL;
+	}
+	path[0] = 0;
+	(void)read (fd, path, sizeof (path));
+	path[sizeof (path) - 1] = 0;
+	close (fd);
+	p = strchr (path, '(');
+	q = strchr (path, ')');
+
+	if (p && q && p < q && q[1] && q[2]) {
+		*q = 0;
+		if (ppid) {
+			char *r = strchr (q + 2, ' ');
+			if (r) *ppid = atoi (r + 1);
+		}
+		return p + 1;
+	}
+	return NULL;
+#else
+#warning getProcName not supported for this platform
+	return NULL;
+#endif
 }
 
 bool is_directory (const char *str) {
