@@ -40,7 +40,7 @@ IOS_CFLAGS+=-fembed-bitcode
 WCH_CC=$(shell xcrun --sdk iphoneos --find clang) $(WCH_CFLAGS)
 
 CC?=gcc
-#CFLAGS+=-g -ggdb
+CFLAGS+=-g -ggdb
 
 OBJS=fsmon.o main.o
 

@@ -39,6 +39,7 @@ typedef struct kfs_event_arg {
 
 /* linux specific */
 #define FSE_OPEN -2
+#define FSE_UNKNOWN -3
 
 #define OLD_FSE 1
 

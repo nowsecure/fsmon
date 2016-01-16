@@ -1,4 +1,4 @@
-/* fsmon -- Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
+/* fsmon -- Copyright NowSecure 2016 - pancake@nowsecure.com  */
 
 #if __linux__
 

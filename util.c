@@ -36,7 +36,7 @@ void hexdump(const uint8_t *buf, unsigned int len, int w) {
 
 #define TYPES_COUNT 11
 // Utility functions
-const char *fm_typestr(uint32_t type) {
+const char *fm_typestr(int type) {
 #define __(x) [x]=#x
 	const char *types[TYPES_COUNT] = {
 		__ (FSE_CREATE_FILE),
@@ -51,12 +51,14 @@ const char *fm_typestr(uint32_t type) {
 		__ (FSE_XATTR_MODIFIED),
 		__ (FSE_XATTR_REMOVED),
 	};
-	if (type == FSE_OPEN)
-		return "FSE_OPEN";
-	return (type < TYPES_COUNT && types[type])? types[type]: "";
+	switch (type) {
+	case FSE_OPEN: return "FSE_OPEN";
+	case FSE_UNKNOWN: return "FSE_UNKNOWN";
+	}
+	return (type >= 0 && type < TYPES_COUNT && types[type])? types[type]: "";
 }
 
-const char *fm_colorstr(uint32_t type) {
+const char *fm_colorstr(int type) {
 	const char *colors[TYPES_COUNT] = {
 		Color_MAGENTA,// FSE_CREATE_FILE
 		Color_RED,    // FSE_DELETE
@@ -70,9 +72,11 @@ const char *fm_colorstr(uint32_t type) {
 		Color_YELLOW, // FSE_XATTR_MODIFIED,
 		Color_RED,    // FSE_XATTR_REMOVED,
 	};
-	if (type == FSE_OPEN)
-		return Color_GREEN;
-	return (type < TYPES_COUNT)? colors[type]: "";
+	switch (type) {
+	case FSE_OPEN: return Color_GREEN;
+	case FSE_UNKNOWN: return Color_RED;
+	}
+	return (type >= 0 && type < TYPES_COUNT)? colors[type]: "";
 }
 
 const char *getProcName(int pid, int *ppid) {
@@ -158,7 +162,7 @@ bool copy_file(const char *src, const char *dst) {
 		}
 		(void) write (fd_dst, buf, count);
 	}
-	close (fd_src);
-	close (fd_dst);
+	(void) close (fd_src);
+	(void) close (fd_dst);
 	return true;
 }

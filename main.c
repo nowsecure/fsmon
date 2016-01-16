@@ -63,7 +63,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		}
 		printf ("\"type\":\"%s\"},", fm_typestr (ev->type));
 	} else {
-		if (fm->fileonly) {
+		if (fm->fileonly && ev->file) {
 			const char *p = ev->file;
 			for (p = p + strlen (p); p > ev->file; p--) {
 				if (*p == '/')
