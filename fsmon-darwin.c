@@ -27,7 +27,6 @@ typedef struct __attribute__ ((__packed__)) {
 } FMEventStruct;
 
 static void fsevent_free (FileMonitorEvent *ev) {
-	//free (ev->newfile);
 	memset (ev, 0, sizeof (*ev));
 	ev->type = -1;
 }
@@ -35,7 +34,6 @@ static void fsevent_free (FileMonitorEvent *ev) {
 static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 	dev_t *dev;
 	int len = fme->val.words[3];
-//eprintf ("STRING %d %s\n", fme->type, (const char*)(fme)+12);
 	switch (fme->type) {
 	case 0:
 		IF_FM_DEBUG eprintf ("kernel fs event ignored (LEN %d)\n", fme->len);
@@ -85,13 +83,10 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		// Not handling this yet.. Not really used, either..
 		IF_FM_DEBUG eprintf ("TODO: FSE_ARG_FINFO\n");
 		break;
-	//case FSE_DELETE:
-//	case FSE_CONTENT_MODIFIED:
-		break;
 	case FSE_ARG_DONE:
 		return -1;
 	case FSE_EVENTS_DROPPED: // 999 / 0x3e7
-		  /* do nothing */
+		/* do nothing */
 		return 8;
 	default:
 		IF_FM_DEBUG eprintf ("(ARG of type %hd, len %hd)\n", fme->type, fme->len);

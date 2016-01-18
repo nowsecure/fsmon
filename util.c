@@ -14,11 +14,7 @@
 #endif
 #include <errno.h>
 #include "fsmon.h"
-/*
-   static inline int isprint(unsigned char chr) {
-   return 0x1F < chr && chr < 0x7F;
-   }
- */
+
 void hexdump(const uint8_t *buf, unsigned int len, int w) {
 	unsigned int i, j;
 	if (w < 1) {
@@ -30,9 +26,9 @@ void hexdump(const uint8_t *buf, unsigned int len, int w) {
 			if (j<len) printf (j%2?"%02x ":"%02x", buf[j]);
 			else printf (j%2?"   ":"  ");
 		}
-		printf(" ");
+		printf (" ");
 		for (j = i; j < i + w; j++)
-			printf ("%c", isprint(buf[j])?buf[j]:'.');
+			printf ("%c", isprint (buf[j])? buf[j]: '.');
 		printf ("\n");
 	}
 }
@@ -135,7 +131,7 @@ const char *getProcName(int pid, int *ppid) {
 		return NULL;
 	}
 	path[0] = 0;
-	(void)read (fd, path, sizeof (path));
+	(void) read (fd, path, sizeof (path));
 	path[sizeof (path) - 1] = 0;
 	close (fd);
 	p = strchr (path, '(');
