@@ -26,12 +26,24 @@ typedef struct __attribute__ ((__packed__)) {
 	} val;
 } FMEventStruct;
 
+static void fsevent_free (FileMonitorEvent *ev) {
+	//free (ev->newfile);
+	memset (ev, 0, sizeof (*ev));
+	ev->type = -1;
+}
+
 static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 	dev_t *dev;
 	int len = fme->val.words[3];
+//eprintf ("STRING %d %s\n", fme->type, (const char*)(fme)+12);
 	switch (fme->type) {
 	case 0:
 		IF_FM_DEBUG eprintf ("kernel fs event ignored (LEN %d)\n", fme->len);
+		break;
+	case FSE_ARG_RAW:
+	case FSE_ARG_VNODE:
+	case FSE_ARG_INT32:
+		/* not yet handled */
 		break;
 	case FSE_ARG_INT64: // This is a timestamp field on the FSEvent
 		// Event IDs are monotonically increasing per system, even
@@ -41,8 +53,8 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		IF_FM_DEBUG eprintf ("EventID: %lld\n", ev->tstamp);
 		break;
 	case FSE_ARG_STRING: // This is a filename, for move/rename (Type 3)
-		ev->newfile = (const char *)&fme->val.ptr;
 		IF_FM_DEBUG eprintf ("EventString: %s\n", (const char*)ev->newfile);
+		ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_DEV: // Block Device associated with the mounted fs
 		dev = (dev_t *) &fme->val.u32;
@@ -59,19 +71,22 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 	case FSE_ARG_UID:
 		ev->uid = fme->val.u32;
 		break;
-	case FSE_ARG_GID:
+	case FSE_ARG_GID: // 0xb // 11 // This shuold be ARG_STRING or ARG_PATH
 		ev->gid = fme->val.u32;
+		ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_PATH:
-		// Not really used... Implement this later..
-		IF_FM_DEBUG eprintf ("TODO: FSE_ARG_PATH\n");
+		//IF_FM_DEBUG eprintf ("TODO: FSE_ARG_PATH\n");
+		//hexdump (fme, 128, 0);
+		// ev->newfile = (const char *)(fme) + 12;
+		//eprintf ("FSE_ARG_PATH (%s)\n", ev->newfile);
 		break;
 	case FSE_ARG_FINFO:
 		// Not handling this yet.. Not really used, either..
 		IF_FM_DEBUG eprintf ("TODO: FSE_ARG_FINFO\n");
 		break;
-	case FSE_DELETE:
-	case FSE_CONTENT_MODIFIED:
+	//case FSE_DELETE:
+//	case FSE_CONTENT_MODIFIED:
 		break;
 	case FSE_ARG_DONE:
 		return -1;
@@ -174,16 +189,18 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 			buf_end = sizeof (buf);
 		while (buf_idx + 1 < buf_end) {
 			FMEventStruct *fme = (FMEventStruct*) (buf + buf_idx);
-			if (!ev.pid) ev.pid = fme->val.u32;
-			if (!ev.proc || !ev.ppid) ev.proc = ev.proc = getProcName (ev.pid, &ev.ppid);
-			if (ev.type == -1) ev.type = fme->type;
-			if (ev.file == NULL) ev.file = (const char *)buf + buf_idx + sizeof (FMEventStruct);
+			/* initialize on first set */
+			if (ev.type == -1) {
+				ev.type = fme->type;
+				ev.pid = fme->val.u32;
+				ev.proc = ev.proc = getProcName (ev.pid, &ev.ppid);
+				ev.file = (const char *)buf + buf_idx + sizeof (FMEventStruct);
+			}
 			/* parse data packet */
 			arg_len = parse_event (&ev, fme);
 			if (arg_len == -1) {
 				if (ev.pid && ev.type != -1 && cb) cb (fm, &ev);
-				memset (&ev, 0, sizeof (ev));
-				ev.type = -1;
+				fsevent_free (&ev);
 				arg_len = 2;
 			} else if (arg_len < 1) {
 				arg_len = sizeof (FMEventStruct);

@@ -70,6 +70,7 @@ typedef struct kfs_event_arg {
 // Each type is followed by the size and then the
 // data.  FSE_ARG_VNODE is just a path string
 
+#define FSE_ARG_NONE     0x0000   // unknown / invalid arg type
 #define FSE_ARG_VNODE    0x0001   // next arg is a vnode pointer
 #define FSE_ARG_STRING   0x0002   // next arg is length followed by string ptr
 #define FSE_ARG_PATH     0x0003   // next arg is a full path

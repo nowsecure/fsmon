@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+const char *fm_argstr(int type);
 const char *fm_typestr(int type);
 const char *fm_colorstr(int type);
 void hexdump(const uint8_t *buf, unsigned int len, int w);

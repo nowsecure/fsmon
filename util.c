@@ -60,6 +60,30 @@ const char *fm_typestr(int type) {
 	return (type >= 0 && type < FSE_MAX_EVENTS && types[type])? types[type]: "";
 }
 
+const char *fm_argstr(int type) {
+#define __(x) [x]=#x
+	const char *args[13] = {
+		__ (FSE_ARG_NONE),
+		__ (FSE_ARG_VNODE),
+		__ (FSE_ARG_STRING),
+		__ (FSE_ARG_PATH),
+		__ (FSE_ARG_INT32),
+		__ (FSE_ARG_INT64),
+		__ (FSE_ARG_RAW),
+		__ (FSE_ARG_INO),
+		__ (FSE_ARG_UID),
+		__ (FSE_ARG_DEV),
+		__ (FSE_ARG_MODE),
+		__ (FSE_ARG_GID),
+		__ (FSE_ARG_FINFO),
+	};
+	switch (type) {
+	case FSE_ARG_DONE: return "FSE_ARG_DONE";
+	case 0: return "FSE_UNKNOWN";
+	}
+	return (type >= 0 && type < FSE_MAX_EVENTS && args[type])? args[type]: "";
+}
+
 const char *fm_colorstr(int type) {
 	const char *colors[FSE_MAX_EVENTS] = {
 		Color_MAGENTA,// FSE_CREATE_FILE
