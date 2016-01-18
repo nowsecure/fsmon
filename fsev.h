@@ -29,7 +29,7 @@ typedef struct kfs_event_arg {
 #define FSEVENTS_DEVICE_FILTER       _IOW('s', 100, fsevent_dev_filter_args)
 #define FSEVENTS_WANT_COMPACT_EVENTS _IO('s', 101)
 #define FSEVENTS_WANT_EXTENDED_INFO  _IO('s', 102)
-#define FSEVENTS_GET_CURRENT_ID	     _IOR('s', 103, uint64_t)
+#define FSEVENTS_GET_CURRENT_ID      _IOR('s', 103, uint64_t)
 
 #define FSE_TYPE_MASK          0x0fff
 #define FSE_FLAG_MASK          0xf000

@@ -15,7 +15,13 @@ PREFIX?=/usr
 clean:
 	rm -f fsmon
 
-.PHONY: all fsmon clean
+install:
+	install -m 0755 fsmon $(DESTDIR)$(PREFIX)/bin/fsmon
+
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/fsmon
+
+.PHONY: all fsmon clean install uninstall
 
 else
 
@@ -87,11 +93,4 @@ android:
 	./ndk-gcc -fPIC -pie $(CFLAGS) $(LDFLAGS) -o fsmon-and \
 		main.c fsmon-linux.c util.c
 
-install:
-	install -m 0755 fsmon $(DESTDIR)$(PREFIX)/bin/fsmon
-
-uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/fsmon
-
-
-.PHONY: android install uninstall
+.PHONY: android

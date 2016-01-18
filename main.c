@@ -10,8 +10,6 @@
 
 static FileMonitor fm = {0};
 
-int count = 0;
-
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
 		if (fm->pid) {
@@ -88,6 +86,10 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		char dst[1024];
 		const char *src = ev->file;
 		char *fname = strdup (ev->file);
+		if (!fname) {
+			eprintf ("Cannot allocate ev->file\n");
+			return false;
+		}
 		for (i=0; fname[i]; i++) {
 			if (fname[i] == '/') {
 				fname[i] = '_';

@@ -162,8 +162,7 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		// hexdump (buf+buf_idx, rc, 0); //arg_len + 2, 0);
 		if (rc < 1) {
 			perror ("read");
-			exit (1);
-			break;
+			return 0;
 		}
 		buf_idx = 0;
 		buf_end = buf_idx + rc;
@@ -182,7 +181,7 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 			/* parse data packet */
 			arg_len = parse_event (&ev, fme);
 			if (arg_len == -1) {
-				if (ev.type != -1 && cb) cb (fm, &ev);
+				if (ev.pid && ev.type != -1 && cb) cb (fm, &ev);
 				memset (&ev, 0, sizeof (ev));
 				ev.type = -1;
 				arg_len = 2;
