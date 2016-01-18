@@ -10,6 +10,8 @@
 
 static FileMonitor fm = {0};
 
+int count = 0;
+
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
 		if (fm->pid) {

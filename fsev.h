@@ -6,6 +6,7 @@
 //#include <sys/fsevents.h> would have been nice, but it's no longer available, as Apple
 // now wraps this with FSEventStream. So instead - rip what we need from the kernel headers..
 
+#if 0
 typedef struct kfs_event_a {
 	uint16_t type;
 	uint16_t refcount;
@@ -17,14 +18,31 @@ typedef struct kfs_event_arg {
 	uint16_t pathlen;
 	char data[0];
 } kfs_event_arg;
+#endif
 
 // Actions for each event type
 #define FSE_IGNORE    0
 #define FSE_REPORT    1
 #define FSE_ASK       2    // Not implemented yet
 
+#define FSEVENTS_CLONE               _IOW('s', 1, fsevent_clone_args)
+#define FSEVENTS_DEVICE_FILTER       _IOW('s', 100, fsevent_dev_filter_args)
+#define FSEVENTS_WANT_COMPACT_EVENTS _IO('s', 101)
+#define FSEVENTS_WANT_EXTENDED_INFO  _IO('s', 102)
+#define FSEVENTS_GET_CURRENT_ID	     _IOR('s', 103, uint64_t)
 
-#define FSEVENTS_CLONE          _IOW('s', 1, fsevent_clone_args)
+#define FSE_TYPE_MASK          0x0fff
+#define FSE_FLAG_MASK          0xf000
+#define FSE_FLAG_SHIFT         12
+#define FSE_GET_FLAGS(type)    (((type) >> 12) & 0x000f)
+
+#define FSE_COMBINED_EVENTS          0x0001
+#define FSE_CONTAINS_DROPPED_EVENTS  0x0002
+
+#define FSE_MODE_HLINK         (1 << 31)    // notification is for a hard-link
+#define FSE_MODE_LAST_HLINK    (1 << 30)    // link count == 0 on a hard-link delete
+#define FSE_REMOTE_DIR_EVENT   (1 << 29)    // this is a remotely generated directory-level granularity event
+#define FSE_TRUNCATED_PATH     (1 << 28)    // the path for this item had to be truncated
 
 #define FSE_INVALID             -1
 #define FSE_CREATE_FILE          0
@@ -36,20 +54,13 @@ typedef struct kfs_event_arg {
 #define FSE_FINDER_INFO_CHANGED  6
 #define FSE_CREATE_DIR           7
 #define FSE_CHOWN                8
+#define FSE_XATTR_MODIFIED       9
+#define FSE_XATTR_REMOVED        10
+#define FSE_MAX_EVENTS           11
 
 /* linux specific */
 #define FSE_OPEN -2
 #define FSE_UNKNOWN -3
-
-#define OLD_FSE 1
-
-#if OLD_FSE
-#define FSE_XATTR_MODIFIED       9
-#define FSE_XATTR_REMOVED       10
-#define FSE_MAX_EVENTS          11
-#else
-#define FSE_MAX_EVENTS          9
-#endif
 
 #define FSE_ALL_EVENTS         998
 

@@ -21,6 +21,9 @@
  */
 void hexdump(const uint8_t *buf, unsigned int len, int w) {
 	unsigned int i, j;
+	if (w < 1) {
+		w = 16;
+	}
 	for (i = 0; i < len; i += w) {
 		printf ("0x%08x: ", i);
 		for (j = i; j < i + w; j++) {
@@ -34,11 +37,9 @@ void hexdump(const uint8_t *buf, unsigned int len, int w) {
 	}
 }
 
-#define TYPES_COUNT 11
-// Utility functions
 const char *fm_typestr(int type) {
 #define __(x) [x]=#x
-	const char *types[TYPES_COUNT] = {
+	const char *types[FSE_MAX_EVENTS] = {
 		__ (FSE_CREATE_FILE),
 		__ (FSE_DELETE),
 		__ (FSE_STAT_CHANGED),
@@ -52,14 +53,15 @@ const char *fm_typestr(int type) {
 		__ (FSE_XATTR_REMOVED),
 	};
 	switch (type) {
+	case FSE_ARG_DONE: return "FSE_ARG_DONE";
 	case FSE_OPEN: return "FSE_OPEN";
 	case FSE_UNKNOWN: return "FSE_UNKNOWN";
 	}
-	return (type >= 0 && type < TYPES_COUNT && types[type])? types[type]: "";
+	return (type >= 0 && type < FSE_MAX_EVENTS && types[type])? types[type]: "";
 }
 
 const char *fm_colorstr(int type) {
-	const char *colors[TYPES_COUNT] = {
+	const char *colors[FSE_MAX_EVENTS] = {
 		Color_MAGENTA,// FSE_CREATE_FILE
 		Color_RED,    // FSE_DELETE
 		Color_YELLOW, // FSE_STAT_CHANGED
@@ -73,10 +75,11 @@ const char *fm_colorstr(int type) {
 		Color_RED,    // FSE_XATTR_REMOVED,
 	};
 	switch (type) {
+	case FSE_ARG_DONE: return Color_GREEN;
 	case FSE_OPEN: return Color_GREEN;
 	case FSE_UNKNOWN: return Color_RED;
 	}
-	return (type >= 0 && type < TYPES_COUNT)? colors[type]: "";
+	return (type >= 0 && type < FSE_MAX_EVENTS)? colors[type]: "";
 }
 
 const char *getProcName(int pid, int *ppid) {

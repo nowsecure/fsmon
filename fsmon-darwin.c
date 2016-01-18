@@ -5,12 +5,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <errno.h>
 #include "fsmon.h"
+
+#define R_MIN(x,y) (((x)>(y))?(y):(x))
 
 typedef struct __attribute__ ((__packed__)) {
 	uint16_t type;
@@ -19,17 +22,17 @@ typedef struct __attribute__ ((__packed__)) {
 		uint32_t u32;
 		uint64_t u64;
 		void *ptr;
+		uint16_t words[4];
 	} val;
 } FMEventStruct;
 
-static int parseArg(FileMonitorEvent *ev, uint8_t *arg) {
-	FMEventStruct *fme = (FMEventStruct *)arg;
+static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 	dev_t *dev;
-	if (!fme) return 1;
+	int len = fme->val.words[3];
 	switch (fme->type) {
 	case 0:
 		IF_FM_DEBUG eprintf ("kernel fs event ignored (LEN %d)\n", fme->len);
-		return 1;
+		break;
 	case FSE_ARG_INT64: // This is a timestamp field on the FSEvent
 		// Event IDs are monotonically increasing per system, even
 		// across reboots and drives coming and going. They bear
@@ -53,27 +56,35 @@ static int parseArg(FileMonitorEvent *ev, uint8_t *arg) {
 	case FSE_ARG_INO:
 		ev->inode = fme->val.u32;
 		break;
-	case FSE_ARG_UID: ev->uid = fme->val.u32;
+	case FSE_ARG_UID:
+		ev->uid = fme->val.u32;
 		break;
-	case FSE_ARG_GID: ev->gid = fme->val.u32;
+	case FSE_ARG_GID:
+		ev->gid = fme->val.u32;
 		break;
-	case FSE_ARG_PATH: // Not really used... Implement this later..
+	case FSE_ARG_PATH:
+		// Not really used... Implement this later..
 		IF_FM_DEBUG eprintf ("TODO: FSE_ARG_PATH\n");
 		break;
-	case FSE_ARG_FINFO: // Not handling this yet.. Not really used, either..
+	case FSE_ARG_FINFO:
+		// Not handling this yet.. Not really used, either..
 		IF_FM_DEBUG eprintf ("TODO: FSE_ARG_FINFO\n");
+		break;
+	case FSE_DELETE:
+	case FSE_CONTENT_MODIFIED:
 		break;
 	case FSE_ARG_DONE:
 		return -1;
+	case FSE_EVENTS_DROPPED: // 999 / 0x3e7
+		  /* do nothing */
+		return 8;
 	default:
-		IF_FM_DEBUG eprintf ("(ARG of type %hd, len %hd)\n",
-			fme->type, fme->len);
-		return sizeof (FMEventStruct) + fme->len;
+		IF_FM_DEBUG eprintf ("(ARG of type %hd, len %hd)\n", fme->type, fme->len);
+		eprintf ("ERROR unknown type %d\n", fme->type);
+		/* ERROR */
+		return 0;
 	}
-	if (fme->len < 1) {
-		return 1;
-	}
-	return 4 + fme->len;
+	return len + sizeof (FMEventStruct);
 }
 
 static int fdsetup(int fd) {
@@ -94,6 +105,12 @@ static int fdsetup(int fd) {
 		perror ("ioctl");
 		return -1;
 	}
+	/* get extended info from events */
+	if ((rc = ioctl (cloned_fd, FSEVENTS_WANT_EXTENDED_INFO, NULL)) < 0) {
+		perror ("ioctl");
+		close (cloned_fd);
+		return -1;
+	}
 	return cloned_fd;
 }
 
@@ -107,7 +124,7 @@ int fm_begin (FileMonitor *fm) {
 	}
 	fd = fdsetup (fd);
 	if (fd == -1) {
-		eprintf ("fdclone");
+		perror ("fdclone");
 		return 0;
 	}
 	fm->fd = fd;
@@ -116,77 +133,68 @@ int fm_begin (FileMonitor *fm) {
 
 int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	FileMonitorEvent ev = {0};
-	struct kfs_event_arg *fse_arg;
 	uint8_t buf[FM_BUFSIZE] = {0};
-	int rc, skip, buf_idx = 0;
+	int arg_len, rc, buf_idx = 0, buf_end = -1;
 
+	if (sizeof (FMEventStruct) != 12) {
+		eprintf ("Invalid FMEventStruct, check your compiler\n");
+		return 0;
+	}
 	for (;;) {
-		if (buf_idx > 0) {
-			memmove (buf, buf + buf_idx, (sizeof (buf) - buf_idx));
+		int rewind = 0;
+		if (buf_idx == buf_end) {
+			buf_idx = 0;
+		} else if (buf_idx > 0) {
+			if (buf_idx > buf_end) {
+				eprintf ("Overflow detected and corrected (%d, %d)\n", buf_idx, buf_end);
+				buf_idx = 0;
+			} else {
+				memmove (buf, buf + buf_idx, (buf_end - buf_idx));
+				rewind = buf_idx = (buf_end - buf_idx);
+			}
 		}
+		if (buf_idx > FM_BUFSIZE) {
+			eprintf ("Warning: Some data is lost in fsevents data read (%d, %d)\n", buf_idx, FM_BUFSIZE);
+			buf_idx = 0;
+		}
+		memset (buf + buf_idx, 0x00, FM_BUFSIZE - buf_idx);
 		rc = read (fm->fd, buf + buf_idx, FM_BUFSIZE - buf_idx);
-		if (rc < 1)
+		// hexdump (buf+buf_idx, rc, 0); //arg_len + 2, 0);
+		if (rc < 1) {
+			perror ("read");
+			exit (1);
 			break;
+		}
 		buf_idx = 0;
+		buf_end = buf_idx + rc;
 
-		mustParseAgain:
 		if (fm->stop)
 			return 0;
 
-		while (buf_idx < rc && buf_idx < sizeof (buf)) {
-			struct kfs_event_a *fse = (struct kfs_event_a *)
-				(buf + buf_idx);
-			if (fse->type == 0) {
-				for (skip = 0; skip < rc; skip++) {
-					if (buf_idx + sizeof (FMEventStruct) < sizeof (buf) && !memcmp (buf+buf_idx, "\x00\x00\x02\x00", 4)) {
-						buf_idx += skip - 6;
-						goto mustParseAgain;
-					}
-				}
-			}
-
-			ev.pid = fse->pid;
-			ev.proc = getProcName (fse->pid, &ev.ppid);
-			ev.type = fse->type;
-			buf_idx += sizeof (struct kfs_event_a);
-			fse_arg = (struct kfs_event_arg *) &buf[buf_idx];
-			ev.file = fse_arg->data;
-			buf_idx += sizeof (kfs_event_arg) + fse_arg->pathlen ;
-
-			if (buf_idx + sizeof (FMEventStruct) > sizeof (buf)) {
-				if (buf_idx > sizeof (buf)) {
-					buf_idx = 0;
-				}
-				break;
-			}
-			int arg_len = parseArg (&ev, buf + buf_idx);
+		if (buf_end >= sizeof (buf))
+			buf_end = sizeof (buf);
+		while (buf_idx + 1 < buf_end) {
+			FMEventStruct *fme = (FMEventStruct*) (buf + buf_idx);
+			if (!ev.pid) ev.pid = fme->val.u32;
+			if (!ev.proc || !ev.ppid) ev.proc = ev.proc = getProcName (ev.pid, &ev.ppid);
+			if (ev.type == -1) ev.type = fme->type;
+			if (ev.file == NULL) ev.file = (const char *)buf + buf_idx + sizeof (FMEventStruct);
+			/* parse data packet */
+			arg_len = parse_event (&ev, fme);
 			if (arg_len == -1) {
-				if (cb) cb (fm, &ev);
+				if (ev.type != -1 && cb) cb (fm, &ev);
 				memset (&ev, 0, sizeof (ev));
+				ev.type = -1;
 				arg_len = 2;
-			}
-			if (buf_idx + sizeof (FMEventStruct) > rc || arg_len < 3) {
-				buf_idx = 0;
-				buf_idx++;
-				break;
+			} else if (arg_len < 1) {
+				arg_len = sizeof (FMEventStruct);
+			} else if (arg_len > (buf_end - buf_idx)) {
+				arg_len = sizeof (FMEventStruct) + 2;
+				eprintf ("Invalid length in fsevents data packet (%d, %d)\n",
+					arg_len, buf_end - buf_idx);
 			}
 			buf_idx += arg_len;
-			while (arg_len > 2 && buf_idx + sizeof(FMEventStruct) < sizeof (buf)) {
-				arg_len = parseArg (&ev, buf + buf_idx);
-				if (arg_len == -1) {
-					if (cb) {
-						cb (fm, &ev);
-					}
-					arg_len = 2;
-					memset (&ev, 0, sizeof (ev));
-				}
-				buf_idx += arg_len;
-			}
 		}
-		if (rc > buf_idx) {
-			eprintf ("Warning: Some events may be lost\n");
-		}
-		buf_idx = 0;
 	}
 	return 0;
 }
