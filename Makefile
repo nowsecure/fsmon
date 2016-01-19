@@ -89,10 +89,17 @@ clean:
 
 endif
 
-ANDROID_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
+LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
+KITKAT_CFLAGS=-DHAVE_FANOTIFY=0 -DHAVE_SYS_FANOTIFY=0
 
-android:
-	./ndk-gcc -fPIC -pie $(ANDROID_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
+android: lollipop
+
+lollipop:
+	./ndk-gcc -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
 		main.c fsmon-linux.c util.c
 
-.PHONY: android
+kitkat:
+	./ndk-gcc -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
+		main.c fsmon-linux.c util.c
+
+.PHONY: android lollipop kitkat
