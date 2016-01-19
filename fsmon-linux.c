@@ -1,4 +1,4 @@
-/* fsmon -- Copyright NowSecure 2016 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2016 - pancake@nowsecure.com  */
 
 #if __linux__
 
@@ -12,16 +12,35 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-//#include <sys/sysctl.h>
 #include "fsmon.h"
 
+/* available on 2.6.37 and android-21 */
+/* kernel syscall */
 #ifndef HAVE_FANOTIFY
-#define HAVE_FANOTIFY 0
+#define HAVE_FANOTIFY 1
+#endif
+
+/* available on glibc, not in bionic */
+/* libc api */
+#ifndef HAVE_SYS_FANOTIFY
+#define HAVE_SYS_FANOTIFY 1
 #endif
 
 #include <sys/inotify.h>
 #if HAVE_FANOTIFY
+#if HAVE_SYS_FANOTIFY
 #include <sys/fanotify.h>
+#else
+#include <asm/unistd.h>
+static int fanotify_init(unsigned int __flags, unsigned int __event_f_flags) {
+	syscall (__NR_fanotify_init, __flags, __event_f_flags);
+}
+
+static int fanotify_mark (int __fanotify_fd, unsigned int __flags,
+	uint64_t __mask, int __dfd, const char *__pathname) {
+	syscall (__NR_fanotify_mark, __fanotify_fd, __flags, __mask, __dfd, __pathname);
+}
+#endif
 #include <linux/fanotify.h>
 #endif
  

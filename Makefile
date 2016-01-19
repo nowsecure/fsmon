@@ -89,8 +89,10 @@ clean:
 
 endif
 
+ANDROID_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
+
 android:
-	./ndk-gcc -fPIC -pie $(CFLAGS) $(LDFLAGS) -o fsmon-and \
+	./ndk-gcc -fPIC -pie $(ANDROID_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
 		main.c fsmon-linux.c util.c
 
 .PHONY: android

@@ -41,7 +41,7 @@ aarch64)
 	ARCH2=arm64
 	;;
 arm)
-	ANDROID_SDK_VERSION=${ANDROID_KITKAT}
+	ANDROID_SDK_VERSION=${ANDROID_LOLIPOP}
 	NDKPFX=${ARCH}-linux-androideabi
 	;;
 mips)
