@@ -3,9 +3,9 @@ DEPENDS=
 PACKAGE_DIR?=${PWD}
 
 all:
-	$(SUDO) $(MAKE) clean
+	$(SUDO) $(MAKE) mrproper
 	mkdir -p data root/usr/bin
-	cp -rf ../fsmon-ios root/usr/bin
+	cp -rf ../fsmon-ios root/usr/bin/fsmon
 	$(SUDO) $(MAKE) debroot
 
 clean:

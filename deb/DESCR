@@ -1,2 +1,0 @@
-Monitor filesystem changes
-This tool listen to filesystem events on Darwin kernels (OSX/iOS) and asyncronously reports which operations are happening on there. This is similar to Linux's inotify

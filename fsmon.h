@@ -10,11 +10,7 @@
 #define eprintf(x,y...) fprintf(stderr,x,##y)
 
 #define FM_DEV "/dev/fsevents"
-//#define FM_BUFSIZE 131072
-//#define FM_BUFSIZE 2048
 #define FM_BUFSIZE 4096
-#define FM_DEBUG 0
-#define IF_FM_DEBUG if (FM_DEBUG)
 
 typedef struct {
 	int pid;

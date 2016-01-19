@@ -58,6 +58,9 @@ ios:
 	$(IOS_CC) $(CFLAGS) -o fsmon-ios fsmon-darwin.c main.c util.c
 	strip fsmon-ios
 
+cydia: ios
+	$(MAKE) -C cydia
+
 osx:
 	$(CC) $(CFLAGS) -o fsmon-osx fsmon-darwin.c main.c util.c
 	strip fsmon-osx
@@ -102,4 +105,4 @@ kitkat:
 	./ndk-gcc -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
 		main.c fsmon-linux.c util.c
 
-.PHONY: android lollipop kitkat
+.PHONY: android lollipop kitkat cydia

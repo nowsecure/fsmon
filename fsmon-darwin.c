@@ -36,7 +36,6 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 	int len = fme->val.words[3];
 	switch (fme->type) {
 	case 0:
-		IF_FM_DEBUG eprintf ("kernel fs event ignored (LEN %d)\n", fme->len);
 		break;
 	case FSE_ARG_RAW:
 	case FSE_ARG_VNODE:
@@ -48,15 +47,12 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		// across reboots and drives coming and going. They bear
 		// no relation to any particular clock or timebase.
 		ev->tstamp = fme->val.u64;
-		IF_FM_DEBUG eprintf ("EventID: %lld\n", ev->tstamp);
 		break;
 	case FSE_ARG_STRING: // This is a filename, for move/rename (Type 3)
-		IF_FM_DEBUG eprintf ("EventString: %s\n", (const char*)ev->newfile);
 		ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_DEV: // Block Device associated with the mounted fs
 		dev = (dev_t *) &fme->val.u32;
-		IF_FM_DEBUG eprintf ("EventDevice: %d,%d ", major(*dev), minor(*dev));
 		ev->dev_major = major (*dev);
 		ev->dev_minor = minor (*dev);
 		break;
@@ -74,14 +70,9 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_PATH:
-		//IF_FM_DEBUG eprintf ("TODO: FSE_ARG_PATH\n");
-		//hexdump (fme, 128, 0);
-		// ev->newfile = (const char *)(fme) + 12;
-		//eprintf ("FSE_ARG_PATH (%s)\n", ev->newfile);
 		break;
 	case FSE_ARG_FINFO:
 		// Not handling this yet.. Not really used, either..
-		IF_FM_DEBUG eprintf ("TODO: FSE_ARG_FINFO\n");
 		break;
 	case FSE_ARG_DONE:
 		return -1;
@@ -89,7 +80,6 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		/* do nothing */
 		return 8;
 	default:
-		IF_FM_DEBUG eprintf ("(ARG of type %hd, len %hd)\n", fme->type, fme->len);
 		eprintf ("ERROR unknown type %d\n", fme->type);
 		/* ERROR */
 		return 0;

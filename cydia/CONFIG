@@ -1,5 +1,5 @@
-PACKAGE=xnu-fsmon
-VERSION=5.2
+PACKAGE=fsmon
+VERSION=1.0
 ARCH=iphoneos-arm
 SECTION=user/shell
 PRIORITY=optional
