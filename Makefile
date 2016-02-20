@@ -79,7 +79,7 @@ fat:
 	strip fsmon
 
 install:
-	install -m 0755 fsmon-fat /usr/local/bin/fsmon
+	install -m 0755 fsmon /usr/local/bin/fsmon
 
 uninstall:
 	rm -f /usr/local/bin/fsmon
