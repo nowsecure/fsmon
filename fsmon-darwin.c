@@ -49,7 +49,7 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		ev->tstamp = fme->val.u64;
 		break;
 	case FSE_ARG_STRING: // This is a filename, for move/rename (Type 3)
-		ev->newfile = (const char *)(fme) + 12;
+		//ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_DEV: // Block Device associated with the mounted fs
 		dev = (dev_t *) &fme->val.u32;
@@ -67,9 +67,10 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		break;
 	case FSE_ARG_GID: // 0xb // 11 // This shuold be ARG_STRING or ARG_PATH
 		ev->gid = fme->val.u32;
-		ev->newfile = (const char *)(fme) + 12;
+		//ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_PATH:
+		//ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_FINFO:
 		// Not handling this yet.. Not really used, either..
