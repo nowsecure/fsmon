@@ -67,12 +67,14 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		break;
 	case FSE_ARG_GID: // 0xb // 11 // This shuold be ARG_STRING or ARG_PATH
 		ev->gid = fme->val.u32;
-		ev->newfile = (const char *)(fme) + 12;
-		if (*ev->newfile != '/') {
-			ev->newfile = NULL;
-			if (ev->type == FSE_RENAME) {
+		if (ev->type == FSE_RENAME) {
+			ev->newfile = (const char *)(fme) + 12;
+			if (*ev->newfile != '/') {
+				ev->newfile = NULL;
 				ev->type = FSE_CREATE_FILE;
 			}
+		} else {
+			ev->newfile = NULL;
 		}
 		break;
 	case FSE_ARG_PATH:
