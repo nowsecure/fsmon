@@ -128,9 +128,12 @@ static void help (const char *argv0) {
 
 static void control_c (int sig) {
 	fm.stop = true;
-	fm_end (&fm);
+	if (fm.json) {
+		printf ("{}]\n");
+	}
 	if (fm.control_c)
 		fm.control_c ();
+	fm_end (&fm);
 }
 
 int main (int argc, char **argv) {
