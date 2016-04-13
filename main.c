@@ -9,6 +9,7 @@
 #include "fsmon.h"
 
 static FileMonitor fm = {0};
+static bool firstnode = true;
 
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
@@ -36,9 +37,10 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			return false;
 	}
 	if (fm->json) {
-		printf ("{\"filename\":\"%s\",\"pid\":%d,"
+		printf ("%s{\"filename\":\"%s\",\"pid\":%d,"
 			"\"uid\":%d,\"gid\":%d,", 
-			ev->file, ev->pid, ev->uid, ev->gid);
+			firstnode? "":",", ev->file, ev->pid, ev->uid, ev->gid);
+		firstnode = false;
 		if (ev->inode) {
 			printf ("\"inode\":%d,", ev->inode);
 		}
@@ -61,7 +63,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		if (ev->newfile && *ev->newfile) {
 			printf ("\"newfile\":\"%s\",", ev->newfile);
 		}
-		printf ("\"type\":\"%s\"},", fm_typestr (ev->type));
+		printf ("\"type\":\"%s\"}", fm_typestr (ev->type));
 	} else {
 		if (fm->fileonly && ev->file) {
 			const char *p = ev->file;
@@ -129,7 +131,7 @@ static void help (const char *argv0) {
 static void control_c (int sig) {
 	fm.stop = true;
 	if (fm.json) {
-		printf ("{}]\n");
+		printf ("]\n");
 	}
 	if (fm.control_c)
 		fm.control_c ();
@@ -192,7 +194,7 @@ int main (int argc, char **argv) {
 		ret = 1;
 	}
 	if (fm.json) {
-		printf ("{}]\n");
+		printf ("]\n");
 	}
 	fm_end (&fm);
 	return ret;
