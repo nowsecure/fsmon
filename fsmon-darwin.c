@@ -27,7 +27,7 @@ typedef struct __attribute__ ((__packed__)) {
 } FMEventStruct;
 
 static void fsevent_free (FileMonitorEvent *ev) {
-	memset (ev, 0, sizeof (*ev));
+	memset (ev, 0, sizeof (FileMonitorEvent));
 	ev->type = -1;
 }
 
@@ -49,7 +49,7 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		ev->tstamp = fme->val.u64;
 		break;
 	case FSE_ARG_STRING: // This is a filename, for move/rename (Type 3)
-		//ev->newfile = (const char *)(fme) + 12;
+//		ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_DEV: // Block Device associated with the mounted fs
 		dev = (dev_t *) &fme->val.u32;
@@ -67,7 +67,13 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 		break;
 	case FSE_ARG_GID: // 0xb // 11 // This shuold be ARG_STRING or ARG_PATH
 		ev->gid = fme->val.u32;
-		//ev->newfile = (const char *)(fme) + 12;
+		ev->newfile = (const char *)(fme) + 12;
+		if (*ev->newfile != '/') {
+			ev->newfile = NULL;
+			if (ev->type == FSE_RENAME) {
+				ev->type = FSE_CREATE_FILE;
+			}
+		}
 		break;
 	case FSE_ARG_PATH:
 		//ev->newfile = (const char *)(fme) + 12;
