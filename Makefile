@@ -98,11 +98,11 @@ KITKAT_CFLAGS=-DHAVE_FANOTIFY=0 -DHAVE_SYS_FANOTIFY=0
 android: lollipop
 
 lollipop:
-	./ndk-gcc -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
+	./ndk-gcc 21 -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
 		main.c fsmon-linux.c util.c
 
 kitkat:
-	./ndk-gcc -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
+	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
 		main.c fsmon-linux.c util.c
 
 .PHONY: android lollipop kitkat cydia
