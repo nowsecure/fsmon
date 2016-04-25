@@ -12,6 +12,7 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/syscall.h>
 #include "fsmon.h"
 
 /* available on 2.6.37 and android-21 */
@@ -33,12 +34,12 @@
 #else
 #include <asm/unistd.h>
 static int fanotify_init(unsigned int __flags, unsigned int __event_f_flags) {
-	syscall (__NR_fanotify_init, __flags, __event_f_flags);
+	return syscall (__NR_fanotify_init, __flags, __event_f_flags);
 }
 
 static int fanotify_mark (int __fanotify_fd, unsigned int __flags,
 	uint64_t __mask, int __dfd, const char *__pathname) {
-	syscall (__NR_fanotify_mark, __fanotify_fd, __flags, __mask, __dfd, __pathname);
+	return syscall (__NR_fanotify_mark, __fanotify_fd, __flags, __mask, __dfd, __pathname);
 }
 #endif
 #include <linux/fanotify.h>
