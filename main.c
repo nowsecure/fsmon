@@ -138,6 +138,13 @@ static void control_c (int sig) {
 	fm_end (&fm);
 }
 
+static void *global_fm = NULL;
+
+static void ringring (const int sig) {
+	fprintf (stderr, "timeout\n");
+	fm_end (global_fm);
+}
+
 int main (int argc, char **argv) {
 	int c, ret = 0;
 
@@ -145,7 +152,7 @@ int main (int argc, char **argv) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
-			if (fm.alarm <1) {
+			if (fm.alarm < 1) {
 				eprintf ("Invalid alarm time\n");
 				return 1;
 			}
@@ -189,6 +196,11 @@ int main (int argc, char **argv) {
 	if (fm_begin (&fm)) {
 		signal (SIGINT, control_c);
 		signal (SIGPIPE, exit);
+		if (fm.alarm) {
+			global_fm = &fm;
+			signal (SIGALRM, ringring);
+			alarm (fm.alarm);
+		}
 		fm_loop (&fm, callback);
 	} else {
 		ret = 1;

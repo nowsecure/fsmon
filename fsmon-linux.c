@@ -238,7 +238,7 @@ static void parseEvent(FileMonitor *fm, struct inotify_event *i, FileMonitorEven
 	}
 }
 
-int fm_begin (FileMonitor *fm) {
+bool fm_begin (FileMonitor *fm) {
 #if HAVE_FANOTIFY
 	int rc = fa_begin (fm);
 	if (rc) return (rc == 1);
@@ -254,7 +254,7 @@ int fm_begin (FileMonitor *fm) {
 	return true;
 }
 
-int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
+bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	char buf[BUF_LEN] __attribute__ ((aligned(8)));
 	struct inotify_event *event;
 	FileMonitorEvent ev = {0};
@@ -280,16 +280,20 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	return true;
 }
 
-int fm_end (FileMonitor *fm) {
+#define FMCLOSE(x) \
+	if (x != -1) { \
+		close (x); \
+		x = -1; \
+		done = true; \
+	}
+
+bool fm_end (FileMonitor *fm) {
+	bool done = false;
 #if HAVE_FANOTIFY
-	if (fan_fd != -1)
-		close (fan_fd);
-	fan_fd = -1;
+	FMCLOSE(fan_fd);
 #endif
-	if (fd != -1)
-		close (fd);
-	fd = -1;
-	return true;
+	FMCLOSE(fd);
+	return done;
 }
 
 #else

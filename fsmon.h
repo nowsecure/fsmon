@@ -45,8 +45,8 @@ typedef struct {
 
 typedef bool (*FileMonitorCallback)(FileMonitor *fm, FileMonitorEvent *ev);
 
-int fm_begin (FileMonitor *fm);
-int fm_loop (FileMonitor *fm, FileMonitorCallback cb);
-int fm_end (FileMonitor *fm);
+bool fm_begin (FileMonitor *fm);
+bool fm_loop (FileMonitor *fm, FileMonitorCallback cb);
+bool fm_end (FileMonitor *fm);
 
 #endif

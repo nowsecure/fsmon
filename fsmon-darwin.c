@@ -123,7 +123,7 @@ static int fdsetup(int fd) {
 	return cloned_fd;
 }
 
-int fm_begin (FileMonitor *fm) {
+bool fm_begin (FileMonitor *fm) {
 	int fd;
 	fm->fd = -1;
 	fd = open (FM_DEV, O_RDONLY);
@@ -140,7 +140,7 @@ int fm_begin (FileMonitor *fm) {
 	return 1;
 }
 
-int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
+bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	FileMonitorEvent ev = {0};
 	uint8_t buf[FM_BUFSIZE] = {0};
 	int arg_len, rc, buf_idx = 0, buf_end = -1;
@@ -149,6 +149,7 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		eprintf ("Invalid FMEventStruct, check your compiler\n");
 		return 0;
 	}
+
 	for (;;) {
 		int rewind = 0;
 		if (buf_idx == buf_end) {
@@ -176,8 +177,9 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		buf_idx = 0;
 		buf_end = buf_idx + rc;
 
-		if (fm->stop)
+		if (fm->stop) {
 			return 0;
+		}
 
 		if (buf_end >= sizeof (buf))
 			buf_end = sizeof (buf);
@@ -209,11 +211,13 @@ int fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	return 0;
 }
 
-int fm_end (FileMonitor *fm) {
-	if (fm->fd != -1)
+bool fm_end (FileMonitor *fm) {
+	if (fm->fd != -1) {
 		close (fm->fd);
-	memset (fm, 0, sizeof (FileMonitor));
-	return 0;
+		fm->fd = -1;
+		return true;
+	}
+	return false;
 }
 
 #else
