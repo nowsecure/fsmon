@@ -20,6 +20,18 @@ fi
 ANDROID_API_LEVEL=$1
 shift 
 
+case "${ANDROID_API_LEVEL}" in
+kk|kitkat)
+	ANDROID_API_LEVEL=19
+	;;
+ll|lollipop)
+	ANDROID_API_LEVEL=21
+	;;
+*)
+	ANDROID_API_LEVEL=19
+	;;
+esac
+
 echo "Using NDK ${NDK}"
 echo "Using NDK_ARCH ${NDK_ARCH} -> ${ARCH}"
 echo "Using ANDROID_API_LEVEL ${ANDROID_API_LEVEL}"

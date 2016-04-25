@@ -92,7 +92,7 @@ clean:
 	rm -f fsmon-osx fsmon-ios
 	rm -rf fsmon*.dSYM
 
-.PHONY: cydia ios osx fat wch
+.PHONY: cydia ios osx osx-pkg fat wch
 
 endif
 
@@ -114,19 +114,27 @@ uninstall:
 # \.-----./
 # / o   o \
 # `-------'
-LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
+
 KITKAT_CFLAGS=-DHAVE_FANOTIFY=0 -DHAVE_SYS_FANOTIFY=0
+LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
 
-android: lollipop
+NDK_ARCH=arm
+ANDROID_ARCHS=arm mips x86
+ANDROID_VERSION=kitkat
 
-lollipop:
-	./ndk-gcc 21 -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
+and android:
+	for a in $(ANDROID_ARCHS) ; do \
+		$(MAKE) $(ANDROID_VERSION) NDK_ARCH=$$a ; \
+	done
+
+ll lollipop:
+	./ndk-gcc 21 -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and-$(NDK_ARCH) \
 		main.c os-linux.c util.c
 
-kitkat:
-	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
+kk kitkat:
+	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-kitkat-$(NDK_ARCH) \
 		main.c os-linux.c util.c
 
-.PHONY: android lollipop kitkat
-.PHONY: install uninstall
 .PHONY: all fsmon clean
+.PHONY: install uninstall
+.PHONY: and android ll lollipop kk kitkat
