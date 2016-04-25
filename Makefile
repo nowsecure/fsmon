@@ -70,6 +70,9 @@ osx:
 	$(CC) $(CFLAGS) -o fsmon-osx os-darwin.c main.c util.c
 	strip fsmon-osx
 
+osx-pkg:
+	./pkg.sh
+
 wch:
 	$(WCH_CC) $(CFLAGS) -o fsmon-wch os-darwin.c main.c util.c
 
@@ -93,13 +96,18 @@ clean:
 
 endif
 
+BINDIR=$(DESTDIR)/$(PREFIX)/bin
+MANDIR=$(DESTDIR)/$(PREFIX)/share/man/man1
+
 install:
-	install -m 0755 fsmon /usr/local/bin/fsmon
-	install -m 0644 fsmon.1 $(DESTDIR)$(PREFIX)/share/man/man1/fsmon.1
+	mkdir -p $(BINDIR)
+	install -m 0755 fsmon $(BINDIR)/fsmon
+	mkdir -p $(MANDIR)
+	install -m 0644 fsmon.1 $(MANDIR)/fsmon.1
 
 uninstall:
-	rm -f /usr/local/bin/fsmon
-	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/fsmon.1
+	rm -f $(BINDIR)/fsmon
+	rm -f $(MANDIR)/fsmon.1
 
 # ANDROID
 #
