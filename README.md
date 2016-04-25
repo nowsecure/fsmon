@@ -32,18 +32,22 @@ Compilation
 
 fsmon is a portable tool. It works on iOS, OSX, Linux and Android (x86, arm, arm64, mips)
 
-* Linux
+*Linux*
 
-	linux$ make
+	$ make
 
-* OSX + iOS fatbin
+*OSX + iOS fatbin*
 
-	osx$ make
+	$ make
 
-* Android
+*iOS*
+
+	$ make ios
+
+*Android*
 
 	$ make android NDK_ARCH=arm
 
-in order to get fsmon installed system wide just use:
+To get fsmon installed system wide just type:
 
 	$ make install
