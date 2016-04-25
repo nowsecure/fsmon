@@ -103,7 +103,7 @@ const char *fm_colorstr(int type) {
 }
 
 const char *getProcName(int pid, int *ppid) {
-	static char path[1024] = {0};
+	static char path[PATH_MAX] = {0};
 #if __APPLE__
 	struct kinfo_proc * kinfo = (struct kinfo_proc*)&path;
 	size_t len = 1000;

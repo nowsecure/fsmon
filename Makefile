@@ -14,7 +14,7 @@ CFLAGS+=-Wall
 all: fsmon
 
 fsmon:
-	$(CC) -o fsmon $(CFLAGS) $(LDFLAGS) fsmon-linux.c main.c util.c
+	$(CC) -o fsmon $(CFLAGS) $(LDFLAGS) os-linux.c main.c util.c
 
 DESTDIR?=
 PREFIX?=/usr
@@ -59,7 +59,7 @@ all: ios osx wch
 	#scp fsmon-ios root@192.168.1.50:.
 
 ios:
-	$(IOS_CC) $(CFLAGS) -o fsmon-ios fsmon-darwin.c main.c util.c
+	$(IOS_CC) $(CFLAGS) -o fsmon-ios os-darwin.c main.c util.c
 	strip fsmon-ios
 	xcrun --sdk iphoneos codesign -s- fsmon-ios
 
@@ -67,11 +67,11 @@ cydia: ios
 	$(MAKE) -C cydia
 
 osx:
-	$(CC) $(CFLAGS) -o fsmon-osx fsmon-darwin.c main.c util.c
+	$(CC) $(CFLAGS) -o fsmon-osx os-darwin.c main.c util.c
 	strip fsmon-osx
 
 wch:
-	$(WCH_CC) $(CFLAGS) -o fsmon-wch fsmon-darwin.c main.c util.c
+	$(WCH_CC) $(CFLAGS) -o fsmon-wch os-darwin.c main.c util.c
 
 fat:
 	lipo fsmon-ios -thin armv7 -output fsmon-ios-armv7
@@ -113,11 +113,11 @@ android: lollipop
 
 lollipop:
 	./ndk-gcc 21 -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
-		main.c fsmon-linux.c util.c
+		main.c os-linux.c util.c
 
 kitkat:
 	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
-		main.c fsmon-linux.c util.c
+		main.c os-linux.c util.c
 
 .PHONY: android lollipop kitkat
 .PHONY: install uninstall
