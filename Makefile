@@ -57,6 +57,7 @@ all: ios osx wch
 ios:
 	$(IOS_CC) $(CFLAGS) -o fsmon-ios fsmon-darwin.c main.c util.c
 	strip fsmon-ios
+	xcrun --sdk iphoneos codesign -s- fsmon-ios
 
 cydia: ios
 	$(MAKE) -C cydia
@@ -77,6 +78,7 @@ fat:
 		-arch armv7k fsmon-wch \
 		-arch x86_64 fsmon-osx
 	strip fsmon
+	codesign -s- fsmon
 
 install:
 	install -m 0755 fsmon /usr/local/bin/fsmon
