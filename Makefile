@@ -1,6 +1,13 @@
 ARCHS=armv7 arm64
 
 ifeq ($(shell uname),Linux)
+# LINUX: GNU / ANDROID
+#     __
+#  -=(o '.
+#     \.-.\
+#     /|  \\
+#     '|  ||
+#      _\_):,_
 
 CFLAGS+=-Wall
 
@@ -14,10 +21,13 @@ PREFIX?=/usr
 
 clean:
 	rm -f fsmon
-
-.PHONY: all fsmon clean install uninstall
-
 else
+# APPLE: OSX / IOS / IWATCH
+#     _
+#    _\)/_
+#   /     \
+#   \     /
+#    \_._/
 
 DESTDIR?=
 PREFIX?=/usr/local
@@ -79,7 +89,7 @@ clean:
 	rm -f fsmon-osx fsmon-ios
 	rm -rf fsmon*.dSYM
 
-.PHONY: all ios osx wch fat clean
+.PHONY: cydia ios osx fat wch
 
 endif
 
@@ -91,6 +101,11 @@ uninstall:
 	rm -f /usr/local/bin/fsmon
 	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/fsmon.1
 
+# ANDROID
+#
+# \.-----./
+# / o   o \
+# `-------'
 LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
 KITKAT_CFLAGS=-DHAVE_FANOTIFY=0 -DHAVE_SYS_FANOTIFY=0
 
@@ -104,4 +119,6 @@ kitkat:
 	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and \
 		main.c fsmon-linux.c util.c
 
-.PHONY: android lollipop kitkat cydia
+.PHONY: android lollipop kitkat
+.PHONY: install uninstall
+.PHONY: all fsmon clean

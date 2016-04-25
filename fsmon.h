@@ -1,7 +1,7 @@
 #ifndef _FSMON_H_
 #define _FSMON_H_
 
-#define FSMON_VERSION "1.0"
+#define FSMON_VERSION "1.1"
 
 #include <stdint.h>
 #include "fsev.h"
