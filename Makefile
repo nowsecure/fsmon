@@ -15,12 +15,6 @@ PREFIX?=/usr
 clean:
 	rm -f fsmon
 
-install:
-	install -m 0755 fsmon $(DESTDIR)$(PREFIX)/bin/fsmon
-
-uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/fsmon
-
 .PHONY: all fsmon clean install uninstall
 
 else
@@ -80,11 +74,6 @@ fat:
 	strip fsmon
 	codesign -s- fsmon
 
-install:
-	install -m 0755 fsmon /usr/local/bin/fsmon
-
-uninstall:
-	rm -f /usr/local/bin/fsmon
 
 clean:
 	rm -f fsmon-osx fsmon-ios
@@ -93,6 +82,14 @@ clean:
 .PHONY: all ios osx wch fat clean
 
 endif
+
+install:
+	install -m 0755 fsmon /usr/local/bin/fsmon
+	install -m 0644 fsmon.1 $(DESTDIR)$(PREFIX)/share/man/man1/fsmon.1
+
+uninstall:
+	rm -f /usr/local/bin/fsmon
+	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/fsmon.1
 
 LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
 KITKAT_CFLAGS=-DHAVE_FANOTIFY=0 -DHAVE_SYS_FANOTIFY=0

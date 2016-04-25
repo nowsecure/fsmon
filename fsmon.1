@@ -1,0 +1,48 @@
+.Dd Apr 5, 2016
+.Dt FSMON 1
+.Sh NAME
+.Nm fsmon
+.Nd FileSystem events Monitor
+.Sh SYNOPSIS
+.Nm fsmon
+.Op Fl chjfv
+.Op [-a sec]
+.Op [-b dir]
+.Op [-p pid]
+.Op [-P proc]
+.Sh DESCRIPTION
+This utility wait for events happening in a specific filesystem directory, it allows to filter by pid, path and even create a backup of the modified files.
+.Sh OPTIONS
+.Bl -tag -width Fl
+.It Fl a Ar sec
+stop monitoring after some seconds
+.It Fl b Ar dir
+backup directory to store the backup
+.It Fl c
+follow children of -p pid
+.It Fl h
+show usage help message
+.It Fl j
+output in JSON
+.It Fl f
+show filename only (no path)
+.It Fl p Ar pid
+grab events produced by this pid
+.It Fl P Ar proc
+grab events produced by this process name
+.It Fl v
+show version
+.El
+.Sh USAGE
+.Pp
+$ sudo fsmon -a 10 -j | json_pp
+.Pp
+.Sh AUTHORS
+.Pp
+Written by Sergi Alvarez <pancake@nowsecure.com>
+.Pp
+Developed at NowSecure '2015
+.Pp
+.Sh LICENSE
+.Pp
+This software is under the MIT license.
