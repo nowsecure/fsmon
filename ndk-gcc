@@ -17,16 +17,17 @@ else
 	ARCH=arm
 fi
 
+ANDROID_API_LEVEL=$1
+shift 
+
 echo "Using NDK ${NDK}"
 echo "Using NDK_ARCH ${NDK_ARCH} -> ${ARCH}"
+echo "Using ANDROID_API_LEVEL ${ANDROID_API_LEVEL}"
 
 #------------------------------------------#
 
 PROGDIR="$(dirname "$0")"
 PROGDIR="$(cd "$PROGDIR" && pwd)"
-
-ANDROID_KITKAT=19
-ANDROID_LOLLIPOP=21
 
 # shellcheck disable=SC2019
 # shellcheck disable=SC2018
@@ -36,16 +37,13 @@ OS="$(uname | tr 'A-Z' 'a-z')"
 ARCH2=${ARCH}
 case "${ARCH}" in
 aarch64)
-	ANDROID_SDK_VERSION=${ANDROID_KITKAT}
 	NDKPFX=${ARCH}-linux-android
 	ARCH2=arm64
 	;;
 arm)
-	ANDROID_SDK_VERSION=${ANDROID_KITKAT}
 	NDKPFX=${ARCH}-linux-androideabi
 	;;
 mips)
-	ANDROID_SDK_VERSION=${ANDROID_KITKAT}
 	NDKPFX=mipsel-linux-android
 	${NDKPFX}-gcc 2>/dev/null
 	if [ $? -gt 1 ]; then
@@ -53,7 +51,6 @@ mips)
 	fi
 	;;
 mips64)
-	ANDROID_SDK_VERSION=${ANDROID_KITKAT}
 	NDKPFX=mips64el-linux-android
 	${NDKPFX}-gcc 2>/dev/null
 	if [ $? -gt 1 ]; then
@@ -61,7 +58,6 @@ mips64)
 	fi
 	;;
 x86)
-	ANDROID_SDK_VERSION=${ANDROID_KITKAT} #x86
 	NDKPFX=i686-android-linux
 	${NDKPFX}-gcc 2>/dev/null
 	if [ $? -gt 1 ]; then
@@ -71,11 +67,11 @@ x86)
 esac
 
 if [ -d "${PROGDIR}/platforms/android-L/arch-${ARCH}" ]; then
-	ANDROID_SDK_VERSION=L
+	ANDROID_API_LEVEL=L
 fi
 
 PROGDIR=${NDK}
-PLATFORM=android-${ANDROID_SDK_VERSION}
+PLATFORM=android-${ANDROID_API_LEVEL}
 PLATFORM_ROOT=${PROGDIR}/platforms/${PLATFORM}/arch-${ARCH2}
 PLATFORM_PATH=${PLATFORM_ROOT}/usr
 # shellcheck disable=SC2010
