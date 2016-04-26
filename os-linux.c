@@ -145,6 +145,10 @@ static int fa_begin(FileMonitor *fm) {
 	init_flags |= (fan_mask & FAN_ALL_PERM_EVENTS)?
 		FAN_CLASS_CONTENT: FAN_CLASS_NOTIF;
 
+	if (!fm->root) {
+		fm->root = "/";
+	}
+
 	fan_fd = fanotify_init (init_flags, O_RDONLY); // | O_LARGEFILE);
 	if (fan_fd < 0)
 		goto fail;
