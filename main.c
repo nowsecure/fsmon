@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <getopt.h>
+#include <unistd.h>
 #include <inttypes.h>
 #include "fsmon.h"
 
