@@ -114,7 +114,8 @@ const char *getProcName(int pid, int *ppid) {
 	mib[2] = KERN_PROC_PID;
 	mib[3] = pid;
 
-	if ((rc = sysctl (mib, 4, path, &len, NULL, 0)) < 0) {
+	memset (path, 0, sizeof (path));
+	if ((rc = sysctl (mib, 4, path, &len, NULL, 0)) != 0) {
 		perror("trace facility failure, KERN_PROC_PID\n");
 		exit (1);
 	}
