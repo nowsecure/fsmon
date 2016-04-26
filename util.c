@@ -12,6 +12,9 @@
 #if __APPLE__
 #include <sys/sysctl.h>
 #endif
+#if __linux__
+#include <linux/limits.h>
+#endif
 #include <errno.h>
 #include "fsmon.h"
 
