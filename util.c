@@ -131,7 +131,7 @@ const char *getProcName(int pid, int *ppid) {
 	snprintf (path, sizeof (path), "/proc/%d/stat", pid);
 	fd = open (path, O_RDONLY);
 	if (fd == -1) {
-		eprintf ("Cannot open '%s'\n", path);
+		// eprintf ("Cannot open '%s'\n", path);
 		return NULL;
 	}
 	path[0] = 0;
