@@ -126,7 +126,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 }
 
 static void help (const char *argv0) {
-	eprintf ("Usage: %s [-jc] [-a sec] [-b dir] [-p pid] [-P proc] [path]\n"
+	eprintf ("Usage: %s [-jc] [-a sec] [-b dir] [-B name] [-p pid] [-P proc] [path]\n"
 		" -a [sec]  stop monitoring after N seconds (alarm)\n"
 		" -b [dir]  backup files to DIR folder (EXPERIMENTAL)\n"
 		" -B [name] specify an alternative backend\n"
@@ -178,6 +178,8 @@ int main (int argc, char **argv) {
 
 #if __APPLE__
 	fm.backend = fmb_devfsev;
+#else
+	fm.backend = fmb_inotify;
 #endif
 
 	while ((c = getopt (argc, argv, "a:chb:B:d:fjLp:P:v")) != -1) {

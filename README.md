@@ -14,14 +14,15 @@ The tool retrieves file system events from a specific directory and shows them i
 
 It is possible to filter the events happening from a specific program name or process id (PID).
 
-	$ ./fsmon -h
-	Usage: ./fsmon [-jc] [-a sec] [-b dir] [-p pid] [-P proc] [path]
+	Usage: ./fsmon [-jc] [-a sec] [-b dir] [-B name] [-p pid] [-P proc] [path]
 	 -a [sec]  stop monitoring after N seconds (alarm)
 	 -b [dir]  backup files to DIR folder (EXPERIMENTAL)
+	 -B [name] specify an alternative backend
 	 -c        follow children of -p PID
+	 -f        show only filename (no path)
 	 -h        show this help
 	 -j        output in JSON format
-	 -f        show only filename (no path)
+	 -L        list all filemonitor backends
 	 -p [pid]  only show events from this pid
 	 -P [proc] events only from process name
 	 -v        show version
