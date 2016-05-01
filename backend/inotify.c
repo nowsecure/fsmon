@@ -195,7 +195,7 @@ static bool fa_loop (FileMonitor *fm, FileMonitorCallback cb) {
 			metadata = FAN_EVENT_NEXT (metadata, len);
 		}
 		while (select (fan_fd + 1, &rfds, NULL, NULL, NULL) < 0)
-			if (errno != EINTR || fm->stop)
+			if (errno != EINTR || !fm->running)
 				goto fail;
 	}
 	if (len < 0)
@@ -282,6 +282,7 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	return true;
 }
 
+static bool fm_end (FileMonitor *fm) {
 #define FMCLOSE(x) \
 	if (x != -1) { \
 		close (x); \
@@ -289,12 +290,12 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		done = true; \
 	}
 
-static bool fm_end (FileMonitor *fm) {
+	bool done = false;
 #if HAVE_FANOTIFY
 	FMCLOSE (fan_fd);
 #endif
 	FMCLOSE (fd);
-	return true;
+	return done;
 }
 
 FileMonitorBackend fmb_inotify = {
