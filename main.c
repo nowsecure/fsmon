@@ -9,20 +9,31 @@
 #include <inttypes.h>
 #include "fsmon.h"
 
-static FileMonitor fm = {0};
+static FileMonitor fm = { 0 };
 static bool firstnode = true;
+
+FileMonitorBackend *backends[] = {
+#if __APPLE__
+	&fmb_devfsev,
+	&fmb_kqueue,
+#if !TARGET_WATCHOS
+	&fmb_fsevapi,
+#endif
+#else
+	&fmb_inotify,
+#endif
+	NULL
+};
 
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
-		if (fm->pid) {
-			if (ev->pid != fm->pid)
-				if (ev->ppid != fm->pid)
-					return false;
+		if (fm->pid && ev->pid != fm->pid) {
+			if (ev->ppid != fm->pid)
+				return false;
 		}
 	} else {
-		if (fm->pid) {
-			if (ev->pid != fm->pid)
-				return false;
+		if (fm->pid && ev->pid != fm->pid) {
+			return false;
 		}
 	}
 	if (fm->root && ev->file) {
@@ -93,7 +104,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			eprintf ("Cannot allocate ev->file\n");
 			return false;
 		}
-		for (i=0; fname[i]; i++) {
+		for (i = 0; fname[i]; i++) {
 			if (fname[i] == '/') {
 				fname[i] = '_';
 			}
@@ -118,10 +129,12 @@ static void help (const char *argv0) {
 	eprintf ("Usage: %s [-jc] [-a sec] [-b dir] [-p pid] [-P proc] [path]\n"
 		" -a [sec]  stop monitoring after N seconds (alarm)\n"
 		" -b [dir]  backup files to DIR folder (EXPERIMENTAL)\n"
+		" -B [name] specify an alternative backend\n"
 		" -c        follow children of -p PID\n"
+		" -f        show only filename (no path)\n"
 		" -h        show this help\n"
 		" -j        output in JSON format\n"
-		" -f        show only filename (no path)\n"
+		" -L        list all filemonitor backends\n"
 		" -p [pid]  only show events from this pid\n"
 		" -P [proc] events only from process name\n"
 		" -v        show version\n"
@@ -130,26 +143,44 @@ static void help (const char *argv0) {
 }
 
 static void control_c (int sig) {
-	fm.stop = true;
-	if (fm.json) {
-		printf ("]\n");
-	}
-	if (fm.control_c)
+	fm.running = false;
+	if (fm.control_c) {
 		fm.control_c ();
-	fm_end (&fm);
+	}
+	fm.backend.end (&fm);
 }
-
-static void *global_fm = NULL;
 
 static void ringring (const int sig) {
 	fprintf (stderr, "timeout\n");
-	fm_end (global_fm);
+	fm.backend.end (&fm);
+}
+
+static bool use_backend(const char *name) {
+	int i;
+	for (i = 0; backends[i]; i++) {
+		if (!strcmp (backends[i]->name, name)) {
+			fm.backend = *backends[i];
+			return true;
+		}
+	}
+	return false;
+}
+
+static void list_backends() {
+	int i;
+	for (i = 0; backends[i]; i++) {
+		printf ("%s\n", backends[i]->name);
+	}
 }
 
 int main (int argc, char **argv) {
 	int c, ret = 0;
 
-	while ((c = getopt (argc, argv, "a:chb:d:fjp:P:v")) != -1) {
+#if __APPLE__
+	fm.backend = fmb_devfsev;
+#endif
+
+	while ((c = getopt (argc, argv, "a:chb:B:d:fjLp:P:v")) != -1) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
@@ -160,6 +191,9 @@ int main (int argc, char **argv) {
 			break;
 		case 'b':
 			fm.link = optarg;
+			break;
+		case 'B':
+			use_backend (optarg);
 			break;
 		case 'c':
 			fm.child = true;
@@ -173,6 +207,9 @@ int main (int argc, char **argv) {
 		case 'j':
 			fm.json = true;
 			break;
+		case 'L':
+			list_backends ();
+			return 0;
 		case 'p':
 			fm.pid = atoi (optarg);
 			break;
@@ -184,7 +221,7 @@ int main (int argc, char **argv) {
 			return 0;
 		}
 	}
-	if (optind<argc) {
+	if (optind < argc) {
 		fm.root = argv[optind];
 	}
 	if (fm.child && !fm.pid) {
@@ -194,21 +231,21 @@ int main (int argc, char **argv) {
 	if (fm.json) {
 		printf ("[");
 	}
-	if (fm_begin (&fm)) {
+	if (fm.backend.begin (&fm)) {
 		signal (SIGINT, control_c);
 		signal (SIGPIPE, exit);
+		fm.running = true;
 		if (fm.alarm) {
-			global_fm = &fm;
 			signal (SIGALRM, ringring);
 			alarm (fm.alarm);
 		}
-		fm_loop (&fm, callback);
+		fm.backend.loop (&fm, callback);
 	} else {
 		ret = 1;
 	}
 	if (fm.json) {
 		printf ("]\n");
 	}
-	fm_end (&fm);
+	fm.backend.end (&fm);
 	return ret;
 }

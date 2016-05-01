@@ -1,5 +1,11 @@
 ARCHS=armv7 arm64
 
+CFLAGS+=-I.
+CFLAGS+=-Wall
+
+SOURCES=main.c util.c
+SOURCES+=backend/*.c
+
 ifeq ($(shell uname),Linux)
 # LINUX: GNU / ANDROID
 #     __
@@ -9,12 +15,10 @@ ifeq ($(shell uname),Linux)
 #     '|  ||
 #      _\_):,_
 
-CFLAGS+=-Wall
-
 all: fsmon
 
 fsmon:
-	$(CC) -o fsmon $(CFLAGS) $(LDFLAGS) os-linux.c main.c util.c
+	$(CC) -o fsmon $(CFLAGS) $(LDFLAGS) $(SOURCES)
 
 DESTDIR?=
 PREFIX?=/usr
@@ -59,7 +63,9 @@ all: ios osx wch
 	#scp fsmon-ios root@192.168.1.50:.
 
 ios:
-	$(IOS_CC) $(CFLAGS) -o fsmon-ios os-darwin.c main.c util.c
+	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
+		-framework CoreFoundation \
+		-framework MobileCoreServices
 	strip fsmon-ios
 	xcrun --sdk iphoneos codesign -s- fsmon-ios
 
@@ -67,14 +73,14 @@ cydia: ios
 	$(MAKE) -C cydia
 
 osx:
-	$(CC) $(CFLAGS) -o fsmon-osx os-darwin.c main.c util.c
+	$(CC) $(CFLAGS) -DTARGET_OSX=1 -o fsmon-osx $(SOURCES) -framework CoreServices
 	strip fsmon-osx
 
 osx-pkg:
 	./pkg.sh
 
 wch:
-	$(WCH_CC) $(CFLAGS) -o fsmon-wch os-darwin.c main.c util.c
+	$(WCH_CC) $(CFLAGS) -DTARGET_WATCHOS=1 -o fsmon-wch $(SOURCES)
 
 fat:
 	lipo fsmon-ios -thin armv7 -output fsmon-ios-armv7
@@ -128,12 +134,10 @@ and android:
 	done
 
 ll lollipop:
-	./ndk-gcc 21 -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and-$(NDK_ARCH) \
-		main.c os-linux.c util.c
+	./ndk-gcc 21 -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and-$(NDK_ARCH) $(SOURCES)
 
 kk kitkat:
-	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-kitkat-$(NDK_ARCH) \
-		main.c os-linux.c util.c
+	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-kitkat-$(NDK_ARCH) $(SOURCES)
 
 .PHONY: all fsmon clean
 .PHONY: install uninstall

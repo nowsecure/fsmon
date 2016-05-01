@@ -172,15 +172,14 @@ static bool fa_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	ssize_t len;
 
 	while (select (fan_fd+1, &rfds, NULL, NULL, NULL) < 0) {
-		if (errno != EINTR || fm->stop)
+		if (errno != EINTR || !fm->running)
 			goto fail;
 	}
 
 	while ((len = read (fan_fd, buf, sizeof (buf))) > 0) {
 		struct fanotify_event_metadata *metadata;
-		if (fm->stop || fan_fd == -1)
+		if (!fm->running || fan_fd == -1)
 			break;
-
 		metadata = (void *)buf;
 		while (FAN_EVENT_OK (metadata, len)) {
 			if (metadata->vers < 2) {
@@ -242,7 +241,7 @@ static void parseEvent(FileMonitor *fm, struct inotify_event *i, FileMonitorEven
 	}
 }
 
-bool fm_begin (FileMonitor *fm) {
+static bool fm_begin (FileMonitor *fm) {
 #if HAVE_FANOTIFY
 	int rc = fa_begin (fm);
 	if (rc) return (rc == 1);
@@ -258,7 +257,7 @@ bool fm_begin (FileMonitor *fm) {
 	return true;
 }
 
-bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
+static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	char buf[BUF_LEN] __attribute__ ((aligned(8)));
 	struct inotify_event *event;
 	FileMonitorEvent ev = {0};
@@ -269,9 +268,8 @@ bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		return fa_loop (fm, cb);
 	}
 #endif
-	for (;;) {
+	for (; fm->running; ) {
 		c = read (fd, buf, BUF_LEN);
-		if (fm->stop) break;
 		if (c < 1) return false;
 		for (p = buf; p < buf + c; ) {
 			event = (struct inotify_event *) p;
@@ -291,15 +289,19 @@ bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		done = true; \
 	}
 
-bool fm_end (FileMonitor *fm) {
-	bool done = false;
+static bool fm_end (FileMonitor *fm) {
 #if HAVE_FANOTIFY
-	FMCLOSE(fan_fd);
+	FMCLOSE (fan_fd);
 #endif
-	FMCLOSE(fd);
-	return done;
+	FMCLOSE (fd);
+	return true;
 }
 
-#else
-#error Unsupported platform
+FileMonitorBackend fmb_inotify = {
+	.name = "inotify/fanotify",
+	.begin = fm_begin,
+	.loop = fm_loop,
+	.end = fm_end,
+};
+
 #endif
