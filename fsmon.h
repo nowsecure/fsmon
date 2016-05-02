@@ -50,7 +50,7 @@ struct filemonitor_t {
 	int alarm;
 	int fd;
 	bool json;
-	bool running;
+	volatile sig_atomic_t running;
 	bool fileonly;
 	uint64_t count;
 	void (*control_c)();
