@@ -173,7 +173,9 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		rc = read (fm->fd, buf + buf_idx, FM_BUFSIZE - buf_idx);
 		// hexdump (buf+buf_idx, rc, 0); //arg_len + 2, 0);
 		if (rc < 1) {
-			perror ("read");
+			if (errno != EINTR) {
+				perror ("read");
+			}
 			return false;
 		}
 		buf_idx = 0;

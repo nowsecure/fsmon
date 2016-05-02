@@ -144,15 +144,6 @@ static void help (const char *argv0) {
 
 static void control_c (int sig) {
 	fm.running = false;
-	if (fm.control_c) {
-		fm.control_c ();
-	}
-	fm.backend.end (&fm);
-}
-
-static void ringring (const int sig) {
-	fprintf (stderr, "timeout\n");
-	fm.backend.end (&fm);
 }
 
 static bool use_backend(const char *name) {
@@ -234,11 +225,14 @@ int main (int argc, char **argv) {
 		printf ("[");
 	}
 	if (fm.backend.begin (&fm)) {
-		signal (SIGINT, control_c);
-		signal (SIGPIPE, exit);
+		struct sigaction int_handler = {
+			.sa_handler = control_c
+		};
+		sigaction (SIGINT, &int_handler, 0);
+		//signal (SIGPIPE, exit);
 		fm.running = true;
 		if (fm.alarm) {
-			signal (SIGALRM, ringring);
+			sigaction (SIGALRM, &int_handler, 0);
 			alarm (fm.alarm);
 		}
 		fm.backend.loop (&fm, callback);
@@ -248,6 +242,7 @@ int main (int argc, char **argv) {
 	if (fm.json) {
 		printf ("]\n");
 	}
+	fflush (stdout);
 	fm.backend.end (&fm);
 	return ret;
 }
