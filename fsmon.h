@@ -9,9 +9,6 @@
 
 #define eprintf(x,y...) fprintf(stderr,x,##y)
 
-#define FM_DEV "/dev/fsevents"
-#define FM_BUFSIZE 4096
-
 struct filemonitor_backend_t;
 struct filemonitor_event_t;
 struct filemonitor_t;

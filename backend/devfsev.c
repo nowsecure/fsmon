@@ -15,6 +15,9 @@
 
 #define WIP 1
 
+#define FM_DEV "/dev/fsevents"
+#define FM_BUFSIZE 4096
+
 #define R_MIN(x,y) (((x)>(y))?(y):(x))
 
 typedef struct __attribute__ ((__packed__)) {
