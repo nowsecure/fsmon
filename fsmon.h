@@ -1,5 +1,5 @@
-#ifndef _FSMON_H_
-#define _FSMON_H_
+#ifndef FM_FSMON_H
+#define FM_FSMON_H
 
 #define FSMON_VERSION "1.2"
 
