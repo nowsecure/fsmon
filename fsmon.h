@@ -1,9 +1,10 @@
-#ifndef FM_FSMON_H
-#define FM_FSMON_H
+#ifndef INCLUDE_FM_FSMON_H
+#define INCLUDE_FM_FSMON_H
 
 #define FSMON_VERSION "1.2"
 
 #include <stdint.h>
+#include <signal.h>
 #include "fsev.h"
 #include "util.h"
 

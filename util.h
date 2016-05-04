@@ -1,5 +1,5 @@
-#ifndef _INCLUDE_UTIL_H_
-#define _INCLUDE_UTIL_H_
+#ifndef INCLUDE_FM_UTIL_H
+#define INCLUDE_FM_UTIL_H
 
 #include <stdbool.h>
 

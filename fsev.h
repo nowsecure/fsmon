@@ -1,6 +1,11 @@
-#ifndef _INCLUDE_FSEV_H_
-#define _INCLUDE_FSEV_H_
+#ifndef INCLUDE_FM_FSEV_H
+#define INCLUDE_FM_FSEV_H
 
+/*
+  TODO: move this into backend/devfsev.h
+  TODO: this stuff must be refactorized to not be fsev-specific
+  TODO: because it is used from non-devfsev backends
+*/
 // fsevents is available here:
 // http://www.opensource.apple.com/source/xnu/xnu-792/bsd/sys/fsevents.h
 //#include <sys/fsevents.h> would have been nice, but it's no longer available, as Apple
