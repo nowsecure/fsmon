@@ -25,6 +25,33 @@ FileMonitorBackend *backends[] = {
 	NULL
 };
 
+static void control_c (int sig) {
+	fm.running = false;
+}
+
+static bool setup_signals() {
+	bool res = true;
+	struct sigaction int_handler = {
+		.sa_handler = control_c
+	};
+	if (sigaction (SIGINT, &int_handler, 0) == -1) {
+		eprintf ("Cannot setup the SIGINT handler\n");
+		res = false;
+	}
+	fm.running = true;
+	if (fm.alarm) {
+		if (sigaction (SIGALRM, &int_handler, 0) == -1) {
+			eprintf ("Cannot setup the SIGALRM handler.\n");
+			res = false;
+		}
+		if (alarm (fm.alarm) != 0) {
+			eprintf ("Warning: A previous alarm was found.\n");
+			res = false;
+		}
+	}
+	return res;
+}
+
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
 		if (fm->pid && ev->pid != fm->pid) {
@@ -142,10 +169,6 @@ static void help (const char *argv0) {
 		, argv0);
 }
 
-static void control_c (int sig) {
-	fm.running = false;
-}
-
 static bool use_backend(const char *name) {
 	int i;
 	for (i = 0; backends[i]; i++) {
@@ -225,16 +248,7 @@ int main (int argc, char **argv) {
 		printf ("[");
 	}
 	if (fm.backend.begin (&fm)) {
-		struct sigaction int_handler = {
-			.sa_handler = control_c
-		};
-		sigaction (SIGINT, &int_handler, 0);
-		//signal (SIGPIPE, exit);
-		fm.running = true;
-		if (fm.alarm) {
-			sigaction (SIGALRM, &int_handler, 0);
-			alarm (fm.alarm);
-		}
+		(void)setup_signals ();
 		fm.backend.loop (&fm, callback);
 	} else {
 		ret = 1;
