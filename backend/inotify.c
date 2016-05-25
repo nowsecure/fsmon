@@ -98,7 +98,7 @@ static bool parseFaEvent(FileMonitor *fm, struct fanotify_event_metadata *metada
 
 	ev->file = path;
 	ev->pid = metadata->pid;
-	ev->proc = getProcName (ev->pid, &ev->ppid);
+	ev->proc = get_proc_name (ev->pid, &ev->ppid);
 	if (metadata->mask & FAN_ACCESS) ev->type = FSE_STAT_CHANGED;
 	if (metadata->mask & FAN_OPEN) ev->type = FSE_OPEN;
 	if (metadata->mask & FAN_MODIFY) ev->type = FSE_CONTENT_MODIFIED;

@@ -76,10 +76,12 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			return false;
 	}
 	if (fm->json) {
+		char *filename = fmu_jsonfilter (ev->file);
 		printf ("%s{\"filename\":\"%s\",\"pid\":%d,"
 			"\"uid\":%d,\"gid\":%d,", 
-			firstnode? "":",", ev->file, ev->pid, ev->uid, ev->gid);
+			firstnode? "":",", filename, ev->pid, ev->uid, ev->gid);
 		firstnode = false;
+		free (filename);
 		if (ev->inode) {
 			printf ("\"inode\":%d,", ev->inode);
 		}
@@ -97,10 +99,14 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			printf ("\"ppid\":%d,", ev->ppid);
 		}
 		if (ev->proc && *ev->proc) {
+			char *proc = fmu_jsonfilter (ev->proc);
 			printf ("\"proc\":\"%s\",", ev->proc);
+			free (proc);
 		}
 		if (ev->newfile && *ev->newfile) {
-			printf ("\"newfile\":\"%s\",", ev->newfile);
+			char *filename = fmu_jsonfilter (ev->newfile);
+			printf ("\"newfile\":\"%s\",", filename);
+			free (filename);
 		}
 		printf ("\"type\":\"%s\"}", fm_typestr (ev->type));
 	} else {

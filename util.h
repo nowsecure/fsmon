@@ -3,11 +3,14 @@
 
 #include <stdbool.h>
 
+#define IS_PRINTABLE(x) (x>=' ' && x<='~')
+
+char *fmu_jsonfilter(const char *s);
 const char *fm_argstr(int type);
 const char *fm_typestr(int type);
 const char *fm_colorstr(int type);
 void hexdump(const uint8_t *buf, unsigned int len, int w);
-const char * getProcName(int pid, int *ppid);
+const char * get_proc_name(int pid, int *ppid);
 bool is_directory (const char *str);
 bool copy_file(const char *src, const char *dst);
 
@@ -42,4 +45,5 @@ bool copy_file(const char *src, const char *dst);
 #define Color_BCYAN     "\x1b[1;36m"
 #define Color_BBLUE     "\x1b[1;34m"
 #define Color_BGRAY     "\x1b[1;38m"
+
 #endif

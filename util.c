@@ -105,7 +105,7 @@ const char *fm_colorstr(int type) {
 	return (type >= 0 && type < FSE_MAX_EVENTS)? colors[type]: "";
 }
 
-const char *getProcName(int pid, int *ppid) {
+const char *get_proc_name(int pid, int *ppid) {
 	static char path[PATH_MAX] = {0};
 #if __APPLE__
 	struct kinfo_proc * kinfo = (struct kinfo_proc*)&path;
@@ -192,4 +192,23 @@ bool copy_file(const char *src, const char *dst) {
 	(void) close (fd_src);
 	(void) close (fd_dst);
 	return true;
+}
+
+static bool isPrintable(const char ch) {
+	if (ch == '"' || ch == '\\') {
+		return false;
+	}
+	return IS_PRINTABLE (ch);
+}
+
+char *fmu_jsonfilter(const char *s) {
+	char *r, *R = strdup (s);
+	for (r = R; *r; ) {
+		if (isPrintable (*r)) {
+			r++;
+		} else {
+			memmove (r, r + 1, strlen (r) + 1);
+		}
+	}
+	return R;
 }

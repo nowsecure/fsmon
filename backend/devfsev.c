@@ -194,13 +194,15 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 				ev.type = fme->type;
 				ev.pid = fme->val.u32;
 				ev.ppid = 0;
-				ev.proc = getProcName (ev.pid, &ev.ppid);
+				ev.proc = get_proc_name (ev.pid, &ev.ppid);
 				ev.file = (const char *)buf + buf_idx + sizeof (FMEventStruct);
 			}
 			/* parse data packet */
 			arg_len = parse_event (&ev, fme);
 			if (arg_len == -1) {
-				if (ev.pid && ev.type != -1 && cb) cb (fm, &ev);
+				if (ev.pid && ev.type != -1 && cb) {
+					cb (fm, &ev);
+				}
 				fsevent_free (&ev);
 				arg_len = 2;
 			} else if (arg_len < 1) {
