@@ -223,7 +223,7 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 					eprintf ("Invalid length in fsevents data packet (%d, %d)\n",
 							arg_len, buf_end - buf_idx);
 					//arg_len += 12;
-					hexdump (buf + buf_idx, buf_end - buf_idx, 0); //arg_len + 2, 0);
+					// hexdump (buf + buf_idx, buf_end - buf_idx, 0); //arg_len + 2, 0);
 				}
 #else
 				arg_len = sizeof (FMEventStruct) + 2;
