@@ -20,6 +20,7 @@ struct filemonitor_event_t {
 	const char *proc;
 	const char *file;
 	const char *newfile; // renamed/moved
+	const char *event; // named event
 	int uid;
 	int gid;
 	int type;
@@ -63,6 +64,7 @@ typedef struct filemonitor_t FileMonitor;
 extern FileMonitorBackend fmb_devfsev;
 extern FileMonitorBackend fmb_fsevapi;
 extern FileMonitorBackend fmb_kqueue;
+extern FileMonitorBackend fmb_kdebug;
 #else
 extern FileMonitorBackend fmb_inotify;
 #endif

@@ -16,6 +16,7 @@ FileMonitorBackend *backends[] = {
 #if __APPLE__
 	&fmb_devfsev,
 	&fmb_kqueue,
+	&fmb_kdebug,
 #if !TARGET_WATCHOS
 	&fmb_fsevapi,
 #endif
@@ -100,8 +101,13 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		}
 		if (ev->proc && *ev->proc) {
 			char *proc = fmu_jsonfilter (ev->proc);
-			printf ("\"proc\":\"%s\",", ev->proc);
+			printf ("\"proc\":\"%s\",", proc);
 			free (proc);
+		}
+		if (ev->event && *ev->event) {
+			char *event = fmu_jsonfilter (ev->event);
+			printf ("\"event\":\"%s\",", event);
+			free (event);
 		}
 		if (ev->newfile && *ev->newfile) {
 			char *filename = fmu_jsonfilter (ev->newfile);
@@ -117,6 +123,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 					ev->file = p + 1;
 			}
 		}
+		// TODO . show event type
 		if (ev->type == FSE_RENAME) {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s -> %s\n",
 				fm_colorstr (ev->type), fm_typestr (ev->type), Color_RESET,
