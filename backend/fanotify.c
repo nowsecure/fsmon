@@ -72,7 +72,7 @@ static int handle_perm(int fan_fd, struct fanotify_event_metadata *metadata) {
 	struct fanotify_response response_struct = {
 		.fd = metadata->fd,
 		.response = FAN_ALLOW
-	}
+	};
 	const int ret = write (fan_fd, &response_struct, sizeof (response_struct));
 	return (ret < 0) ? ret : 0;
 }
