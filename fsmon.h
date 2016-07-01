@@ -67,6 +67,7 @@ extern FileMonitorBackend fmb_kqueue;
 extern FileMonitorBackend fmb_kdebug;
 #else
 extern FileMonitorBackend fmb_inotify;
+extern FileMonitorBackend fmb_fanotify;
 #endif
 
 #endif

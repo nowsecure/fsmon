@@ -22,6 +22,9 @@ FileMonitorBackend *backends[] = {
 #endif
 #else
 	&fmb_inotify,
+#if HAVE_FANOTIFY
+	&fmb_fanotify,
+#endif
 #endif
 	NULL
 };

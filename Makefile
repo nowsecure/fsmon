@@ -14,6 +14,7 @@ ifeq ($(shell uname),Linux)
 #     /|  \\
 #     '|  ||
 #      _\_):,_
+CFLAGS+=-DHAVE_FANOTIFY=1
 
 all: fsmon
 
