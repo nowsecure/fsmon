@@ -26,12 +26,16 @@ void hexdump(const uint8_t *buf, unsigned int len, int w) {
 	for (i = 0; i < len; i += w) {
 		printf ("0x%08x: ", i);
 		for (j = i; j < i + w; j++) {
-			if (j<len) printf (j%2?"%02x ":"%02x", buf[j]);
-			else printf (j%2?"   ":"  ");
+			if (j < len) {
+				printf (j%2 ? "%02x ":"%02x", buf[j]);
+			} else {
+				printf (j%2 ? "   " : "  ");
+			}
 		}
 		printf (" ");
-		for (j = i; j < i + w; j++)
+		for (j = i; j < i + w; j++) {
 			printf ("%c", isprint (buf[j])? buf[j]: '.');
+		}
 		printf ("\n");
 	}
 }
@@ -158,9 +162,15 @@ const char *get_proc_name(int pid, int *ppid) {
 
 bool is_directory (const char *str) {
         struct stat buf = {0};
-        if (!str || !*str) return false;
-        if (stat (str, &buf) == -1) return false;
-        if ((S_IFBLK & buf.st_mode) == S_IFBLK) return false;
+        if (!str || !*str) {
+		return false;
+	}
+        if (stat (str, &buf) == -1) {
+		return false;
+	}
+        if ((S_IFBLK & buf.st_mode) == S_IFBLK) {
+		return false;
+	}
         return S_IFDIR == (S_IFDIR & buf.st_mode);
 }
 
@@ -179,7 +189,7 @@ bool copy_file(const char *src, const char *dst) {
 	}
 	fd_dst = open (dst, O_RDWR | O_CREAT | O_TRUNC, mode);
 	if (fd_dst == -1) {
-		close (fd_src);
+		(void) close (fd_src);
 		return false;
 	}
 	for (;;) {

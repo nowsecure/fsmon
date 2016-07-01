@@ -92,12 +92,12 @@ static void freePathForFd() {
 	pidpathn = 0;
 }
 
-static void parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEvent *ev) {
+static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEvent *ev) {
 	static char absfile[PATH_MAX];
 	ev->type = FSE_INVALID;
 	if (ie->mask & IN_ACCESS) {
 		if (ie->mask & IN_ISDIR) {
-			return;
+			return false;
 		}
 		ev->type = FSE_STAT_CHANGED;
 	} else if (ie->mask & IN_MODIFY) {
@@ -106,7 +106,7 @@ static void parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 		ev->type = FSE_STAT_CHANGED;
 	} else if (ie->mask & IN_OPEN) {
 		if (ie->mask & IN_ISDIR) {
-			return;
+			return false;
 		}
 		ev->type = FSE_OPEN;
 	} else if (ie->mask & IN_CREATE) {
@@ -147,6 +147,7 @@ static void parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 	} else {
 		ev->file = "."; // directory itself
 	}
+	return true;
 }
 
 static void fm_inotify_add_dirtree(int fd, const char *name) {
@@ -208,8 +209,7 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 		}
 		for (p = buf; p < buf + c; ) {
 			event = (struct inotify_event *) p;
-			parseEvent (fm, event, &ev);
-			if (ev.type != -1 && ev.file) {
+			if (parseEvent (fm, event, &ev)) {
 				cb (fm, &ev);
 			}
 			memset (&ev, 0, sizeof (ev));

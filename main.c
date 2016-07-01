@@ -59,8 +59,9 @@ static bool setup_signals() {
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
 		if (fm->pid && ev->pid != fm->pid) {
-			if (ev->ppid != fm->pid)
+			if (ev->ppid != fm->pid) {
 				return false;
+			}
 		}
 	} else {
 		if (fm->pid && ev->pid != fm->pid) {
@@ -68,16 +69,19 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		}
 	}
 	if (fm->root && ev->file) {
-		if (strncmp (ev->file, fm->root, strlen (fm->root)))
+		if (strncmp (ev->file, fm->root, strlen (fm->root))) {
 			return false;
+		}
 	}
 	if (fm->link && ev->file) {
-		if (!strncmp (ev->file, fm->link, strlen (fm->link)))
+		if (!strncmp (ev->file, fm->link, strlen (fm->link))) {
 			return false;
+		}
 	}
 	if (fm->proc && ev->proc) {
-		if (!strstr (ev->proc, fm->proc))
+		if (!strstr (ev->proc, fm->proc)) {
 			return false;
+		}
 	}
 	if (fm->json) {
 		char *filename = fmu_jsonfilter (ev->file);

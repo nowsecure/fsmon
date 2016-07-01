@@ -14,12 +14,13 @@ ifeq ($(shell uname),Linux)
 #     /|  \\
 #     '|  ||
 #      _\_):,_
-CFLAGS+=-DHAVE_FANOTIFY=1
+FANOTIFY_CFLAGS+=-DHAVE_FANOTIFY=1
+FANOTIFY_CFLAGS+=-DHAVE_SYS_FANOTIFY=1
 
 all: fsmon
 
 fsmon:
-	$(CC) -o fsmon $(CFLAGS) $(LDFLAGS) $(SOURCES)
+	$(CC) -o fsmon $(CFLAGS) $(FANOTIFY_CFLAGS) $(LDFLAGS) $(SOURCES)
 
 DESTDIR?=
 PREFIX?=/usr

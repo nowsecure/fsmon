@@ -203,7 +203,7 @@ static bool fm_begin (FileMonitor *fm) {
 		goto fail;
 
 	if (fanotify_mark (fan_fd, mark_flags, fan_mask, AT_FDCWD, fm->root) != 0) {
-		perror("fanotify_mark");
+		perror ("fanotify_mark");
 		return -1;
 	}
 
