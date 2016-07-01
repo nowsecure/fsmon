@@ -534,6 +534,7 @@ static char *parse_access(int arg2) {
 }
 #endif
 
+#if WITH_MAIN
 static char *parse_openarg(int arg2) {
 	static char mode[7];
 
@@ -554,6 +555,7 @@ static char *parse_openarg(int arg2) {
 	if (arg2 & O_EXCL) mode[5] = 'e';
 	return mode;
 }
+#endif
 
 static void set_pidcheck(int pid, int on_off) {
 	kd_regtype kr;
@@ -623,6 +625,7 @@ bool kdebug_stop() {
 	return true;
 }
 
+#if WITH_MAIN
 static void exit_usage(const char *myname) {
 	eprintf ("Usage: %s [-e] [pid | cmd [pid | cmd] ...]\n", myname);
 	eprintf ("  -e    exclude the specified list of pids from the sample\n");
@@ -630,10 +633,12 @@ static void exit_usage(const char *myname) {
 	eprintf ("By default (no options) the following processes are excluded from the output:\n");
 	eprintf ("fs_usage, Terminal, telnetd, sshd, rlogind, tcsh, csh, sh\n\n");
 }
+#endif
 
 int filemgr_index(type) {
-	if (type & 0x10000)
+	if (type & 0x10000) {
 		return (((type >> 2) & 0x3fff) + 256);
+	}
 	return (((type >> 2) & 0x3fff));
 }
 

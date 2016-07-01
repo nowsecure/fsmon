@@ -69,12 +69,12 @@ static void usr1_handler(int sig __attribute__((unused)),
 }
 
 static int handle_perm(int fan_fd, struct fanotify_event_metadata *metadata) {
-	struct fanotify_response response_struct;
-	int ret;
-	response_struct.fd = metadata->fd;
-	response_struct.response = FAN_ALLOW;
-	ret = write (fan_fd, &response_struct, sizeof(response_struct));
-	return (ret<0)? ret: 0;
+	struct fanotify_response response_struct = {
+		.fd = metadata->fd,
+		.response = FAN_ALLOW
+	}
+	const int ret = write (fan_fd, &response_struct, sizeof (response_struct));
+	return (ret < 0) ? ret : 0;
 }
 
 static bool parseFaEvent(FileMonitor *fm, struct fanotify_event_metadata *metadata, FileMonitorEvent *ev) {
@@ -89,16 +89,21 @@ static bool parseFaEvent(FileMonitor *fm, struct fanotify_event_metadata *metada
 		}
 		path[path_len] = '\0';
 		//printf ("%s:", path);
-	} else strcpy (path, ".");
-
+	} else {
+		strcpy (path, ".");
+	}
 	ev->file = path;
 	ev->pid = metadata->pid;
 	ev->proc = get_proc_name (ev->pid, &ev->ppid);
 	if (metadata->mask & FAN_ACCESS) {
 		ev->type = FSE_STAT_CHANGED;
 	}
-	if (metadata->mask & FAN_OPEN) ev->type = FSE_OPEN;
-	if (metadata->mask & FAN_MODIFY) ev->type = FSE_CONTENT_MODIFIED;
+	if (metadata->mask & FAN_OPEN) {
+		ev->type = FSE_OPEN;
+	}
+	if (metadata->mask & FAN_MODIFY) {
+		ev->type = FSE_CONTENT_MODIFIED;
+	}
 	if (metadata->mask & FAN_CLOSE) {
 		if (metadata->mask & FAN_CLOSE_WRITE) {
 			ev->type = FSE_CREATE_FILE; // create
@@ -147,12 +152,16 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 				eprintf ("Kernel fanotify version too old\n");
 				goto fail;
 			}
-			if (!parseFaEvent (fm, metadata, &ev))
+			if (!parseFaEvent (fm, metadata, &ev)) {
 				goto fail;
-			if (ev.type != -1) cb (fm, &ev);
+			}
+			if (ev.type != -1) {
+				cb (fm, &ev);
+			}
 			memset (&ev, 0, sizeof (ev));
-			if (metadata->fd >= 0 && close (metadata->fd) != 0)
+			if (metadata->fd >= 0 && close (metadata->fd) != 0) {
 				goto fail;
+			}
 			metadata = FAN_EVENT_NEXT (metadata, len);
 		}
 		while (select (fan_fd + 1, &rfds, NULL, NULL, NULL) < 0) {
@@ -180,39 +189,31 @@ static bool fm_begin (FileMonitor *fm) {
 	sa.sa_flags = SA_SIGINFO | SA_RESTART;
 	sigemptyset (&sa.sa_mask);
 	sa.sa_sigaction = usr1_handler;
-
 	if (sigaction (SIGUSR1, &sa, NULL) == -1) {
 		eprintf ("Cannot set SIGUSR1 signal handler\n");
-		goto fail;
+		return false;
 	}
-
 	fan_mask |= FAN_ONDIR;
 	fan_mask |= FAN_EVENT_ON_CHILD;
 	mark_flags |= FAN_MARK_MOUNT; // walk into subdirectories
-
 	init_flags |= (fan_mask & FAN_ALL_PERM_EVENTS)
 		? FAN_CLASS_CONTENT
 		: FAN_CLASS_NOTIF;
-
 	if (!fm->root) {
 		fm->root = "/";
 	}
-
 	fan_fd = fanotify_init (init_flags, O_RDONLY); // | O_LARGEFILE);
-	if (fan_fd < 0)
-		goto fail;
-
+	if (fan_fd < 0) {
+		perror ("fanotify_init");
+		return false;
+	}
 	if (fanotify_mark (fan_fd, mark_flags, fan_mask, AT_FDCWD, fm->root) != 0) {
 		perror ("fanotify_mark");
-		return -1;
+		return false;
 	}
-
 	FD_ZERO (&rfds);
 	FD_SET (fan_fd, &rfds);
-	return 1;
-fail:
-	perror ("fanotify");
-	return 0;
+	return true;
 }
 
 static bool fm_end (FileMonitor *fm) {

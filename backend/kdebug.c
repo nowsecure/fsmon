@@ -25,7 +25,7 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	kdebug_env (fm, cb);
 	for (; fm->running; ) {
 		/* read events, run callback */
-		bool rc = kdebug_loop_once ();
+		(void) kdebug_loop_once ();
 		fflush (stdout);
 	}
 	return true;
@@ -33,7 +33,6 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 
 static bool fm_end(FileMonitor *fm) {
 	return kdebug_stop ();
-	return false;
 }
 
 FileMonitorBackend fmb_kdebug = {
