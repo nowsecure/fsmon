@@ -212,16 +212,31 @@ fail:
 static void parseEvent(FileMonitor *fm, struct inotify_event *i, FileMonitorEvent *ev) {
 	static char absfile[PATH_MAX];
 	ev->type = FSE_INVALID;
-	if (i->mask & IN_ACCESS) ev->type = FSE_STAT_CHANGED;
-	else if (i->mask & IN_MODIFY) ev->type = FSE_CONTENT_MODIFIED;
-	else if (i->mask & IN_ATTRIB) ev->type = FSE_STAT_CHANGED;
-	else if (i->mask & IN_OPEN) ev->type = FSE_OPEN;
-	else if (i->mask & IN_CREATE) ev->type = FSE_CREATE_FILE;
-	else if (i->mask & IN_DELETE) ev->type = FSE_DELETE;
-	else if (i->mask & IN_DELETE_SELF) ev->type = FSE_DELETE;
-	else if (i->mask & IN_MOVE_SELF) ev->type = FSE_RENAME;
-	else if (i->mask & IN_MOVED_FROM) ev->type = FSE_RENAME;
-	else if (i->mask & IN_MOVED_TO) ev->type = FSE_RENAME;
+	if (i->mask & IN_ACCESS) {
+		ev->type = FSE_STAT_CHANGED;
+	} else if (i->mask & IN_MODIFY) {
+		ev->type = FSE_CONTENT_MODIFIED;
+	} else if (i->mask & IN_ACCESS) {
+		ev->type = FSE_STAT_CHANGED; // XXX
+	} else if (i->mask & IN_ATTRIB) {
+		ev->type = FSE_STAT_CHANGED;
+	} else if (i->mask & IN_OPEN) {
+		ev->type = FSE_OPEN;
+	} else if (i->mask & IN_CREATE) {
+		ev->type = (i->mask & IN_ISDIR)
+			? FSE_CREATE_DIR
+			: FSE_CREATE_FILE;
+	} else if (i->mask & IN_DELETE) {
+		ev->type = FSE_DELETE;
+	} else if (i->mask & IN_DELETE_SELF) {
+		ev->type = FSE_DELETE;
+	} else if (i->mask & IN_MOVE_SELF) {
+		ev->type = FSE_RENAME;
+	} else if (i->mask & IN_MOVED_FROM) {
+		ev->type = FSE_RENAME;
+	} else if (i->mask & IN_MOVED_TO) {
+		ev->type = FSE_RENAME;
+	}
 	#if 0
 	if (i->mask & IN_IGNORED)       printf("IN_IGNORED ");
 	if (i->mask & IN_ISDIR)         printf("IN_ISDIR ");
@@ -244,7 +259,9 @@ static void parseEvent(FileMonitor *fm, struct inotify_event *i, FileMonitorEven
 static bool fm_begin (FileMonitor *fm) {
 #if HAVE_FANOTIFY
 	int rc = fa_begin (fm);
-	if (rc) return (rc == 1);
+	if (rc) {
+		return (rc == 1);
+	}
 #endif
 	eprintf ("Warning: inotify can't monitor subdirectories\n");
 	fm->control_c = fm_control_c;
