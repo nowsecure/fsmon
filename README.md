@@ -28,6 +28,20 @@ It is possible to filter the events happening from a specific program name or pr
 	 -v        show version
 	 [path]    only get events from this path
 
+Backends
+--------
+
+fsmon filesystem information is taken from different backends depending on the operating system and apis available.
+
+This is the list of backends that can be listed with `fsmon -L`:
+
+* inotify (linux / android)
+* fanotify (linux > 2.6.36 / android 5)
+* devfsev (osx /dev/fsevents - requires root)
+* kqueue (xnu - requires root)
+* kdebug (bsd?, xnu - requires root)
+* fsevapi (osx filesystem monitor api)
+
 Compilation
 -----------
 
@@ -52,3 +66,7 @@ fsmon is a portable tool. It works on iOS, OSX, Linux and Android (x86, arm, arm
 To get fsmon installed system wide just type:
 
 	$ make install
+
+Changing installation path...
+
+	$ make install PREFIX=/usr DESTDIR=/
