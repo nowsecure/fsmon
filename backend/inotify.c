@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
+#include <dirent.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
@@ -99,7 +100,9 @@ static bool parseFaEvent(FileMonitor *fm, struct fanotify_event_metadata *metada
 	ev->file = path;
 	ev->pid = metadata->pid;
 	ev->proc = get_proc_name (ev->pid, &ev->ppid);
-	if (metadata->mask & FAN_ACCESS) ev->type = FSE_STAT_CHANGED;
+	if (metadata->mask & FAN_ACCESS) {
+		ev->type = FSE_STAT_CHANGED;
+	}
 	if (metadata->mask & FAN_OPEN) ev->type = FSE_OPEN;
 	if (metadata->mask & FAN_MODIFY) ev->type = FSE_CONTENT_MODIFIED;
 	if (metadata->mask & FAN_CLOSE) {
@@ -117,8 +120,9 @@ static bool parseFaEvent(FileMonitor *fm, struct fanotify_event_metadata *metada
 		ev->type = FSE_STAT_CHANGED;
 	}
 	if (metadata->mask & FAN_ALL_PERM_EVENTS) {
-		if (handle_perm (fan_fd, metadata))
+		if (handle_perm (fan_fd, metadata)) {
 			return false;
+		}
 	}
 	return true;
 }
@@ -209,32 +213,94 @@ fail:
 
 /* inotify fallback */
 
-static void parseEvent(FileMonitor *fm, struct inotify_event *i, FileMonitorEvent *ev) {
+typedef struct PidPath {
+	int fd;
+	char *path;
+} PidPath;
+
+static int skipevents = 0;
+static int pidpathn = 0;
+static PidPath* pidpaths = NULL;
+
+static void setPathForFd(int fd, const char *path) {
+	int last = pidpathn++;
+	PidPath* tmp = realloc (pidpaths, pidpathn * sizeof (PidPath));
+	if (tmp) {
+		tmp[last].fd = fd;
+		tmp[last].path = strdup (path);
+		pidpaths = tmp;
+		skipevents += 2;
+	}
+}
+
+static bool invalidPathForFd(int fd) {
+	int i;
+	if (fd == -1) {
+		return false;
+	}
+	for (i = 0; i < pidpathn; i++) {
+		PidPath *pp = &pidpaths[i];
+		if (pp->fd == fd) {
+			close (pp->fd);
+			pp->fd = -1;
+			free (pp->path);
+			pp->path = NULL;
+			return true;
+		}
+	}
+	return false;
+}
+
+static const char *getPathForFd(int fd) {
+	int i;
+	if (fd == -1) {
+		return false;
+	}
+	for (i = 0; i < pidpathn; i++) {
+		PidPath *pp = &pidpaths[i];
+		if (pp->fd == fd) {
+			return pp->path;
+		}
+	}
+	return "";
+}
+
+static void freePathForFd() {
+	free (pidpaths);
+	pidpaths = NULL;
+	pidpathn = 0;
+}
+
+static void parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEvent *ev) {
 	static char absfile[PATH_MAX];
 	ev->type = FSE_INVALID;
-	if (i->mask & IN_ACCESS) {
+	if (ie->mask & IN_ACCESS) {
+		if (ie->mask & IN_ISDIR) {
+			return;
+		}
 		ev->type = FSE_STAT_CHANGED;
-	} else if (i->mask & IN_MODIFY) {
+	} else if (ie->mask & IN_MODIFY) {
 		ev->type = FSE_CONTENT_MODIFIED;
-	} else if (i->mask & IN_ACCESS) {
-		ev->type = FSE_STAT_CHANGED; // XXX
-	} else if (i->mask & IN_ATTRIB) {
+	} else if (ie->mask & IN_ATTRIB) {
 		ev->type = FSE_STAT_CHANGED;
-	} else if (i->mask & IN_OPEN) {
+	} else if (ie->mask & IN_OPEN) {
+		if (ie->mask & IN_ISDIR) {
+			return;
+		}
 		ev->type = FSE_OPEN;
-	} else if (i->mask & IN_CREATE) {
-		ev->type = (i->mask & IN_ISDIR)
+	} else if (ie->mask & IN_CREATE) {
+		ev->type = (ie->mask & IN_ISDIR)
 			? FSE_CREATE_DIR
 			: FSE_CREATE_FILE;
-	} else if (i->mask & IN_DELETE) {
+	} else if (ie->mask & IN_DELETE) {
 		ev->type = FSE_DELETE;
-	} else if (i->mask & IN_DELETE_SELF) {
+	} else if (ie->mask & IN_DELETE_SELF) {
 		ev->type = FSE_DELETE;
-	} else if (i->mask & IN_MOVE_SELF) {
+	} else if (ie->mask & IN_MOVE_SELF) {
 		ev->type = FSE_RENAME;
-	} else if (i->mask & IN_MOVED_FROM) {
+	} else if (ie->mask & IN_MOVED_FROM) {
 		ev->type = FSE_RENAME;
-	} else if (i->mask & IN_MOVED_TO) {
+	} else if (ie->mask & IN_MOVED_TO) {
 		ev->type = FSE_RENAME;
 	}
 	#if 0
@@ -243,17 +309,54 @@ static void parseEvent(FileMonitor *fm, struct inotify_event *i, FileMonitorEven
 	if (i->mask & IN_Q_OVERFLOW)    printf("IN_Q_OVERFLOW ");
 	if (i->mask & IN_UNMOUNT)       printf("IN_UNMOUNT ");
 	#endif
-	if (i->len > 0) {
-		if (i->name && fm->root && *fm->root) {
-			snprintf (absfile, sizeof (absfile), "%s/%s", fm->root, i->name);
+	if (ie->len > 0) {
+		if (ie->name && fm->root && *fm->root) {
+			const char *root = getPathForFd (ie->wd);
+			snprintf (absfile, sizeof (absfile), "%s/%s", root, ie->name);
 		} else {
-			if (i->name)
-				snprintf (absfile, sizeof (absfile), "%s", i->name);
+			if (ie->name) {
+				snprintf (absfile, sizeof (absfile), "%s", ie->name);
+			}
 		}
 		ev->file = absfile;
+		if (ev->type == FSE_CREATE_DIR) {
+			int wd = inotify_add_watch (fd, ev->file, IN_ALL_EVENTS);
+			setPathForFd (wd, ev->file);
+		}
 	} else {
 		ev->file = "."; // directory itself
 	}
+}
+
+static void fm_inotify_add_dirtree(int fd, const char *name) {
+	struct dirent *entry;
+	char path[1024];
+	DIR *dir;
+
+	if (!(dir = opendir (name))) {
+		return;
+	}
+	if (!(entry = readdir (dir))) {
+		return;
+	}
+	//eprintf ("Monitor %s\n", name);
+	int wd = inotify_add_watch (fd, name, IN_ALL_EVENTS);
+	setPathForFd (wd, name);
+	do {
+		if (entry->d_type == DT_DIR) {
+			if (!strcmp (entry->d_name, ".") || !strcmp (entry->d_name, "..")) {
+				continue;
+			}
+			path[0] = 0;
+			int len = snprintf (path, sizeof (path) - 1, "%s/%s", name, entry->d_name);
+			if (len < 1) {
+				path[sizeof (path) - 1] = 0;
+			}
+			path[len] = 0;
+			fm_inotify_add_dirtree (fd, path);
+		}
+	} while ((entry = readdir (dir)));
+	closedir (dir);
 }
 
 static bool fm_begin (FileMonitor *fm) {
@@ -263,21 +366,20 @@ static bool fm_begin (FileMonitor *fm) {
 		return (rc == 1);
 	}
 #endif
-	eprintf ("Warning: inotify can't monitor subdirectories\n");
 	fm->control_c = fm_control_c;
 	fd = inotify_init ();
 	if (fd == -1) {
 		perror ("inotify_init");
 		return false;
 	}
-	inotify_add_watch (fd, fm->root? fm->root: ".", IN_ALL_EVENTS);
+	fm_inotify_add_dirtree (fd, fm->root? fm->root: ".");
 	return true;
 }
 
 static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	char buf[BUF_LEN] __attribute__ ((aligned(8)));
 	struct inotify_event *event;
-	FileMonitorEvent ev = {0};
+	FileMonitorEvent ev = { 0 };
 	int c;
 	char *p;
 #if HAVE_FANOTIFY
@@ -287,11 +389,16 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 #endif
 	for (; fm->running; ) {
 		c = read (fd, buf, BUF_LEN);
-		if (c < 1) return false;
+		if (c < 1) {
+			invalidPathForFd (fd);
+			return 0;
+		}
 		for (p = buf; p < buf + c; ) {
 			event = (struct inotify_event *) p;
 			parseEvent (fm, event, &ev);
-			if (ev.type != -1) cb (fm, &ev);
+			if (ev.type != -1 && ev.file) {
+				cb (fm, &ev);
+			}
 			memset (&ev, 0, sizeof (ev));
 			p += sizeof (struct inotify_event) + event->len;
 		}
@@ -312,6 +419,7 @@ static bool fm_end (FileMonitor *fm) {
 	FMCLOSE (fan_fd);
 #endif
 	FMCLOSE (fd);
+	freePathForFd ();
 	return done;
 }
 
