@@ -1,7 +1,7 @@
 #ifndef INCLUDE_FM_FSMON_H
 #define INCLUDE_FM_FSMON_H
 
-#define FSMON_VERSION "1.3"
+#define FSMON_VERSION "1.4"
 
 #include <stdint.h>
 #include <signal.h>
