@@ -60,9 +60,7 @@ CFLAGS+=-g -ggdb
 
 OBJS=fsmon.o main.o
 
-all: ios osx wch
-	$(MAKE) fat
-	#scp fsmon-ios root@192.168.1.50:.
+all: osx
 
 ios:
 	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
@@ -84,7 +82,7 @@ osx-pkg:
 wch:
 	$(WCH_CC) $(CFLAGS) -DTARGET_WATCHOS=1 -o fsmon-wch $(SOURCES)
 
-fat:
+fat: ios osx wch
 	lipo fsmon-ios -thin armv7 -output fsmon-ios-armv7
 	lipo fsmon-ios -thin arm64 -output fsmon-ios-arm64
 	lipo -create -output fsmon \
@@ -94,7 +92,6 @@ fat:
 		-arch x86_64 fsmon-osx
 	strip fsmon
 	codesign -s- fsmon
-
 
 clean:
 	rm -f fsmon-osx fsmon-ios
