@@ -123,20 +123,26 @@ uninstall:
 KITKAT_CFLAGS=-DHAVE_FANOTIFY=0 -DHAVE_SYS_FANOTIFY=0
 LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
 
-NDK_ARCH=arm
-ANDROID_ARCHS=arm mips x86
-ANDROID_VERSION=kitkat
+NDK_ARCH=
+ANDROID_ARCHS=arm mips x86 x86_64 aarch64
+ANDROID_API=
+
+ifneq ($(NDK_ARCH), "")
+ ANDROID_ARCHS=$(NDK_ARCH)
+endif
 
 and android:
+	#export ANDROID_API=$(ANDROID_API)
 	for a in $(ANDROID_ARCHS) ; do \
-		$(MAKE) $(ANDROID_VERSION) NDK_ARCH=$$a ; \
+		$(MAKE) andcompile ANDROID_API=$(ANDROID_API) NDK_ARCH=$$a ; \
 	done
 
-ll lollipop:
-	./ndk-gcc 21 -fPIC -pie $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and-$(NDK_ARCH) $(SOURCES)
-
-kk kitkat:
-	./ndk-gcc 19 -fPIC -pie $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-kitkat-$(NDK_ARCH) $(SOURCES)
+andcompile:
+	if [ $(ANDROID_API) -gt 18 ]; then \
+		./ndk-gcc $(ANDROID_API) $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES) ; \
+	else \
+		./ndk-gcc $(ANDROID_API) $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES) ; \
+	fi
 
 .PHONY: all fsmon clean
 .PHONY: install uninstall
