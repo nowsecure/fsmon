@@ -138,7 +138,7 @@ and android:
 	done
 
 andcompile:
-	if [ $(ANDROID_API) -gt 18 ]; then \
+	if [ $(ANDROID_API) -gt 21 ]; then \
 		./ndk-gcc $(ANDROID_API) $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES) ; \
 	else \
 		./ndk-gcc $(ANDROID_API) $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES) ; \

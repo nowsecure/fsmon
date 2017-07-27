@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # android gcc wrapper
 
 if [ -z "${NDK}" ]; then
