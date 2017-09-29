@@ -127,23 +127,22 @@ NDK_ARCH=
 ANDROID_ARCHS=arm mips x86 x86_64 aarch64
 ANDROID_API=
 
-ifneq ($(NDK_ARCH), "")
- ANDROID_ARCHS=$(NDK_ARCH)
+ifneq ($(NDK_ARCH),)
+ANDROID_ARCHS=$(NDK_ARCH)
 endif
+AAPIMODE=$(shell test $(ANDROID_API) -gt 21 && echo aagt21compile || echo aalt21compile)
 
 and android:
-	#export ANDROID_API=$(ANDROID_API)
 	for a in $(ANDROID_ARCHS) ; do \
-		$(MAKE) andcompile ANDROID_API=$(ANDROID_API) NDK_ARCH=$$a ; \
+		$(MAKE) $(AAPIMODE) ANDROID_API=$(ANDROID_API) NDK_ARCH=$$a ; \
 	done
 
-andcompile:
-	if [ $(ANDROID_API) -gt 21 ]; then \
-		./ndk-gcc $(ANDROID_API) $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES) ; \
-	else \
-		./ndk-gcc $(ANDROID_API) $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES) ; \
-	fi
+aagt21compile:
+	./ndk-gcc $(ANDROID_API) $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES)
+
+aalt21compile:
+	./ndk-gcc $(ANDROID_API) $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES)
 
 .PHONY: all fsmon clean
 .PHONY: install uninstall
-.PHONY: and android ll lollipop kk kitkat
+.PHONY: and android

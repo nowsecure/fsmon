@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # android gcc wrapper
 
 if [ -z "${NDK}" ]; then
-	NDK=/root/android-sdk/ndk-bundle
+	NDK=~/Downloads/android-ndk-r10e
 	echo "Using ${NDK} as NDK path."
 	if [ ! -d "${NDK}" ]; then
 		echo "Invalid path in NDK environment, please change me."
