@@ -61,7 +61,7 @@ fsmon is a portable tool. It works on iOS, OSX, Linux and Android (x86, arm, arm
 
 *Android*
 
-	$ make android NDK_ARCH=arm
+	$ make android NDK_ARCH=<ARCH> ANDROID_API=<API>
 
 To get fsmon installed system wide just type:
 
