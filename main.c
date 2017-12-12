@@ -188,6 +188,7 @@ static void help (const char *argv0) {
 		" -f        show only filename (no path)\n"
 		" -h        show this help\n"
 		" -j        output in JSON format\n"
+		" -J        output in JSON stream format\n"
 		" -L        list all filemonitor backends\n"
 		" -p [pid]  only show events from this pid\n"
 		" -P [proc] events only from process name\n"
