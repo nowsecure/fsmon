@@ -1,4 +1,4 @@
-/* fsmon -- MIT - Copyright NowSecure 2015-2016 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2015-2017 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <string.h>
@@ -83,7 +83,10 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			return false;
 		}
 	}
-	if (fm->json) {
+	if (fm->json || fm->jsonStream) {
+		if (fm->jsonStream) {
+			firstnode = true;
+		}
 		char *filename = fmu_jsonfilter (ev->file);
 		printf ("%s{\"filename\":\"%s\",\"pid\":%d,"
 			"\"uid\":%d,\"gid\":%d,", 
@@ -122,6 +125,10 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			free (filename);
 		}
 		printf ("\"type\":\"%s\"}", fm_typestr (ev->type));
+		if (fm->jsonStream) {
+			printf ("\n");
+			fflush (stdout);
+		}
 	} else {
 		if (fm->fileonly && ev->file) {
 			const char *p = ev->file;
@@ -173,7 +180,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 }
 
 static void help (const char *argv0) {
-	eprintf ("Usage: %s [-jc] [-a sec] [-b dir] [-B name] [-p pid] [-P proc] [path]\n"
+	eprintf ("Usage: %s [-Jjc] [-a sec] [-b dir] [-B name] [-p pid] [-P proc] [path]\n"
 		" -a [sec]  stop monitoring after N seconds (alarm)\n"
 		" -b [dir]  backup files to DIR folder (EXPERIMENTAL)\n"
 		" -B [name] specify an alternative backend\n"
@@ -209,14 +216,13 @@ static void list_backends() {
 
 int main (int argc, char **argv) {
 	int c, ret = 0;
-
 #if __APPLE__
 	fm.backend = fmb_devfsev;
 #else
 	fm.backend = fmb_inotify;
 #endif
 
-	while ((c = getopt (argc, argv, "a:chb:B:d:fjLp:P:v")) != -1) {
+	while ((c = getopt (argc, argv, "a:chb:B:d:fjJLp:P:v")) != -1) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
@@ -242,6 +248,9 @@ int main (int argc, char **argv) {
 			break;
 		case 'j':
 			fm.json = true;
+			break;
+		case 'J':
+			fm.jsonStream = true;
 			break;
 		case 'L':
 			list_backends ();

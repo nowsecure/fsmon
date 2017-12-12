@@ -49,6 +49,7 @@ struct filemonitor_t {
 	int alarm;
 	int fd;
 	bool json;
+	bool jsonStream;
 	volatile sig_atomic_t running;
 	bool fileonly;
 	uint64_t count;
