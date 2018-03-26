@@ -31,8 +31,8 @@ else
 # APPLE: OSX / IOS / IWATCH
 #     _
 #    _\)/_
-#   /     \
-#   \     /
+#   /    /
+#   \    \
 #    \_._/
 
 DESTDIR?=
