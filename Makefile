@@ -67,7 +67,7 @@ ios:
 		-framework CoreFoundation \
 		-framework MobileCoreServices
 	strip fsmon-ios
-	xcrun --sdk iphoneos codesign -s- fsmon-ios
+	xcrun --sdk iphoneos codesign --entitlements ./entitlements.plist -s- fsmon-ios
 
 cydia: ios
 	$(MAKE) -C cydia
