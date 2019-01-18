@@ -45,6 +45,7 @@ IOS_SYSROOT=$(shell xcrun --sdk iphoneos --show-sdk-path)
 IOS_CFLAGS+=-isysroot ${IOS_SYSROOT}
 IOS_CFLAGS+=-fembed-bitcode
 IOS_CFLAGS+=-flto
+#IOS_CFLAGS+=-Wl,-iphoneos_version_min,10.0
 IOS_CFLAGS+=-O3 -Wall
 IOS_CC=$(shell xcrun --sdk iphoneos --find clang) $(IOS_CFLAGS)
 
@@ -65,8 +66,9 @@ all: osx
 ios:
 	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
 		-framework CoreFoundation \
-		-framework MobileCoreServices
-	strip fsmon-ios
+		-weak_framework MobileCoreServices
+		-weak_framework CoreServices
+	xcrun --sdk iphoneos strip fsmon-ios
 	xcrun --sdk iphoneos codesign --entitlements ./entitlements.plist -s- fsmon-ios
 
 cydia: ios
