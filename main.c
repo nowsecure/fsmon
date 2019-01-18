@@ -1,4 +1,4 @@
-/* fsmon -- MIT - Copyright NowSecure 2015-2017 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2015-2019 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <string.h>
@@ -11,6 +11,7 @@
 
 static FileMonitor fm = { 0 };
 static bool firstnode = true;
+static bool colorful = true;
 
 FileMonitorBackend *backends[] = {
 #if __APPLE__
@@ -137,16 +138,19 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 					ev->file = p + 1;
 			}
 		}
+		const char *color_begin = colorful? fm_colorstr (ev->type): "";
+		const char *color_begin2 = colorful? Color_MAGENTA: "";
+		const char *color_end = colorful? Color_RESET: "";
 		// TODO . show event type
 		if (ev->type == FSE_RENAME) {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s -> %s\n",
-				fm_colorstr (ev->type), fm_typestr (ev->type), Color_RESET,
-				ev->pid, Color_MAGENTA, ev->proc? ev->proc: "", Color_RESET, ev->file,
+				color_begin, fm_typestr (ev->type), color_end,
+				ev->pid, color_begin2, ev->proc? ev->proc: "", color_end, ev->file,
 				ev->newfile);
 		} else {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s\n",
-				fm_colorstr (ev->type), fm_typestr (ev->type), Color_RESET,
-				ev->pid, Color_MAGENTA, ev->proc? ev->proc: "", Color_RESET, ev->file);
+				color_begin, fm_typestr (ev->type), color_end,
+				ev->pid, color_begin2, ev->proc? ev->proc: "", color_end, ev->file);
 		}
 	}
 	if (fm->link) {
@@ -189,6 +193,7 @@ static void help (const char *argv0) {
 		" -h        show this help\n"
 		" -j        output in JSON format\n"
 		" -J        output in JSON stream format\n"
+		" -n        do not use colors\n"
 		" -L        list all filemonitor backends\n"
 		" -p [pid]  only show events from this pid\n"
 		" -P [proc] events only from process name\n"
@@ -223,7 +228,7 @@ int main (int argc, char **argv) {
 	fm.backend = fmb_inotify;
 #endif
 
-	while ((c = getopt (argc, argv, "a:chb:B:d:fjJLp:P:v")) != -1) {
+	while ((c = getopt (argc, argv, "a:chb:B:d:fjJLnp:P:v")) != -1) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
@@ -256,6 +261,9 @@ int main (int argc, char **argv) {
 		case 'L':
 			list_backends ();
 			return 0;
+		case 'n':
+			colorful = false;
+			break;
 		case 'p':
 			fm.pid = atoi (optarg);
 			break;
