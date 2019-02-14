@@ -3,10 +3,14 @@ ARCHS=armv7 arm64
 CFLAGS+=-I.
 CFLAGS+=-Wall
 
+include config.mk
+CFLAGS+=-DFSMON_VERSION=\"$(VERSION)\"
+
 SOURCES=main.c util.c
 SOURCES+=backend/*.c
 
 ifeq ($(shell uname),Linux)
+
 # LINUX: GNU / ANDROID
 #     __
 #  -=(o '.
@@ -14,6 +18,7 @@ ifeq ($(shell uname),Linux)
 #     /|  \\
 #     '|  ||
 #      _\_):,_
+
 FANOTIFY_CFLAGS+=-DHAVE_FANOTIFY=1
 FANOTIFY_CFLAGS+=-DHAVE_SYS_FANOTIFY=1
 

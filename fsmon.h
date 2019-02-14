@@ -1,7 +1,9 @@
 #ifndef INCLUDE_FM_FSMON_H
 #define INCLUDE_FM_FSMON_H
 
-#define FSMON_VERSION "1.6"
+#ifndef FSMON_VERSION
+#error FSMON_VERSION is not defined
+#endif
 
 #include <stdint.h>
 #include <signal.h>
