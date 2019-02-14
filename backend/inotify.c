@@ -131,11 +131,11 @@ static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 	if (i->mask & IN_UNMOUNT)       printf("IN_UNMOUNT ");
 	#endif
 	if (ie->len > 0) {
-		if (ie->name && fm->root && *fm->root) {
+		if (*ie->name && fm->root && *fm->root) {
 			const char *root = getPathForFd (ie->wd);
 			snprintf (absfile, sizeof (absfile), "%s/%s", root, ie->name);
 		} else {
-			if (ie->name) {
+			if (*ie->name) {
 				snprintf (absfile, sizeof (absfile), "%s", ie->name);
 			}
 		}

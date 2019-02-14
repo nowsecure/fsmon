@@ -125,25 +125,30 @@ uninstall:
 KITKAT_CFLAGS=-DHAVE_FANOTIFY=0 -DHAVE_SYS_FANOTIFY=0
 LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
 
-NDK_ARCH=
-ANDROID_ARCHS=arm mips x86 x86_64 aarch64
-ANDROID_API=
+NDK_ARCH?=
+ANDROID_ARCHS=arm arm64 x86 x86_64
+ANDROID_API?=
 
 ifneq ($(NDK_ARCH),)
 ANDROID_ARCHS=$(NDK_ARCH)
 endif
-AAPIMODE=$(shell test $(ANDROID_API) -gt 21 && echo aagt21compile || echo aalt21compile)
+AAPIMODE=$(shell test ${ANDROID_API} -gt 21 && echo aagt21compile || echo aalt21compile)
 
 and android:
 	for a in $(ANDROID_ARCHS) ; do \
-		$(MAKE) $(AAPIMODE) ANDROID_API=$(ANDROID_API) NDK_ARCH=$$a ; \
+		if [ -z "${NDK}" ] ; then \
+			./android-shell.sh $$a \
+			$(MAKE) $(AAPIMODE) ANDROID_API=$(ANDROID_API) NDK_ARCH=$$a ; \
+		else \
+			$(MAKE) $(AAPIMODE) ANDROID_API=$(ANDROID_API) NDK_ARCH=$$a ; \
+		fi; \
 	done
 
 aagt21compile:
-	./ndk-gcc $(ANDROID_API) $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES)
+	ndk-gcc $(ANDROID_API) $(LOLLIPOP_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES)
 
 aalt21compile:
-	./ndk-gcc $(ANDROID_API) $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES)
+	ndk-gcc $(ANDROID_API) $(KITKAT_CFLAGS) $(CFLAGS) $(LDFLAGS) -o fsmon-and$(ANDROID_API)-$(NDK_ARCH) $(SOURCES)
 
 .PHONY: all fsmon clean
 .PHONY: install uninstall
