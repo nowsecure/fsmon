@@ -1,6 +1,6 @@
 PACKAGE=fsmon
-VERSION=1.5
+VERSION=1.6
 ARCH=iphoneos-arm
 SECTION=user/shell
 PRIORITY=optional
-MAINTAINER=pancake <pancake@nopcode.org>
+MAINTAINER=pancake <pancake@nowsecure.com>

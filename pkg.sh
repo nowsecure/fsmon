@@ -9,9 +9,9 @@
 DESTDIR=/tmp/fsmon_pkg
 PREFIX=/usr/local
 PKGDIR="$(pwd)/fsmon.unpkg"
-[ -z "${VERSION}" ] && VERSION=1.5
+[ -z "${VERSION}" ] && VERSION=1.6
 [ -z "${MAKE}" ] && MAKE=make
-VERSION=1.5
+VERSION=1.6
 
 rm -rf "${DESTDIR}"
 ${MAKE} clean
