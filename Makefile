@@ -98,6 +98,7 @@ fat: ios osx wch
 clean:
 	rm -f fsmon-osx fsmon-ios
 	rm -rf fsmon*.dSYM
+	rm -f fsmon-and*
 
 .PHONY: cydia ios osx osx-pkg fat wch
 

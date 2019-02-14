@@ -91,7 +91,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		char *filename = fmu_jsonfilter (ev->file);
 		printf ("%s{\"filename\":\"%s\",\"pid\":%d,"
 			"\"uid\":%d,\"gid\":%d,", 
-			firstnode? "":",", filename, ev->pid, ev->uid, ev->gid);
+			(fm->jsonStream || firstnode)? "":",", filename, ev->pid, ev->uid, ev->gid);
 		firstnode = false;
 		free (filename);
 		if (ev->inode) {
@@ -282,7 +282,7 @@ int main (int argc, char **argv) {
 		eprintf ("-c requires -p\n");
 		return 1;
 	}
-	if (fm.json) {
+	if (fm.json && !fm.jsonStream) {
 		printf ("[");
 	}
 	if (fm.backend.begin (&fm)) {
@@ -291,7 +291,7 @@ int main (int argc, char **argv) {
 	} else {
 		ret = 1;
 	}
-	if (fm.json) {
+	if (fm.json && !fm.jsonStream) {
 		printf ("]\n");
 	}
 	fflush (stdout);
