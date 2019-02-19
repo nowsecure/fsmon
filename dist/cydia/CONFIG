@@ -1,5 +1,5 @@
 PACKAGE=fsmon
-include ../config.mk
+include ../../config.mk
 ARCH=iphoneos-arm
 SECTION=user/shell
 PRIORITY=optional

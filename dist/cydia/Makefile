@@ -5,9 +5,9 @@ PACKAGE_DIR?=${PWD}
 all:
 	$(SUDO) $(MAKE) mrproper
 	mkdir -p data root/usr/bin
-	cp -f ../fsmon-ios root/usr/bin/fsmon
+	cp -f ../../fsmon-ios root/usr/bin/fsmon
 	mkdir -p root/usr/share/man/man1
-	cp -f ../fsmon.1 root/usr/share/man/man1/fsmon.1
+	cp -f ../../fsmon.1 root/usr/share/man/man1/fsmon.1
 	$(SUDO) $(MAKE) debroot
 
 clean:
