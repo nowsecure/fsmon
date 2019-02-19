@@ -1,0 +1,7 @@
+PACKAGE=fsmon
+ARCH=amd64
+DEPENDS=radare2
+SECTION=user/shell
+PRIORITY=optional
+MAINTAINER=pancake <pancake@nowsecure.com>
+include ../../config.mk
