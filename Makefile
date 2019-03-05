@@ -73,7 +73,7 @@ oldios:
 		-framework CoreFoundation \
 		-framework MobileCoreServices
 	xcrun --sdk iphoneos strip fsmon-ios
-	xcrun --sdk iphoneos codesign --entitlements ./entitlements.plist -s- fsmon-ios
+	xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios
 
 ios:
 	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
@@ -81,7 +81,7 @@ ios:
 		-weak_framework MobileCoreServices \
 		-weak_framework CoreServices
 	xcrun --sdk iphoneos strip fsmon-ios
-	xcrun --sdk iphoneos codesign --entitlements ./entitlements.plist -s- fsmon-ios
+	xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios
 
 ios2:
 	$(MAKE) ios
@@ -95,7 +95,7 @@ ios-patch:
 		r2 -qnwc "wx 18000080 @ $$OFF-4" $$a
 	rm -f fsmon-ios
 	lipo -create -arch arm64 fsmon-ios.fat/fsmon-ios.arm_64* -arch armv7 fsmon-ios.fat/fsmon-ios.arm_32* -output fsmon-ios
-	-xcrun --sdk iphoneos codesign --entitlements ./entitlements.plist -s- fsmon-ios
+	-xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios
 	rm -rf fsmon-ios.fat
 
 cydia: ios
