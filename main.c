@@ -1,4 +1,4 @@
-/* fsmon -- MIT - Copyright NowSecure 2015-2019 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2015-2020 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <string.h>
@@ -57,6 +57,17 @@ static bool setup_signals() {
 	return res;
 }
 
+static uint64_t __sys_now(void) {
+	uint64_t ret;
+	struct timeval now;
+	gettimeofday (&now, NULL);
+	ret = now.tv_sec;
+	ret <<= 20;
+	ret |= now.tv_usec;
+	//(sizeof (now.tv_sec) == 4
+	return ret;
+}
+
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
 		if (fm->pid && ev->pid != fm->pid) {
@@ -96,6 +107,10 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		free (filename);
 		if (ev->inode) {
 			printf ("\"inode\":%d,", ev->inode);
+		}
+		if (ev->tstamp) {
+			uint64_t now = __sys_now();
+			printf ("\"time\":%" PRId64 ",", now);
 		}
 		if (ev->tstamp) {
 			printf ("\"timestamp\":%" PRId64 ",", ev->tstamp);
