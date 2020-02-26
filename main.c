@@ -7,6 +7,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <sys/time.h>
 #include "fsmon.h"
 
 static FileMonitor fm = { 0 };
