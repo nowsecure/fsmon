@@ -37,7 +37,6 @@ static void fsevent_free (FileMonitorEvent *ev) {
 }
 
 static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
-	dev_t *dev;
 	int len = fme->val.words[3];
 	switch (fme->type) {
 	case 0:
@@ -57,9 +56,11 @@ static int parse_event(FileMonitorEvent *ev, FMEventStruct *fme) {
 //		ev->newfile = (const char *)(fme) + 12;
 		break;
 	case FSE_ARG_DEV: // Block Device associated with the mounted fs
-		dev = (dev_t *) &fme->val.u32;
-		ev->dev_major = major (*dev);
-		ev->dev_minor = minor (*dev);
+		{
+			uint32_t val = fme->val.u32;
+			ev->dev_major = major (val);
+			ev->dev_minor = minor (val);
+		}
 		break;
 	case FSE_ARG_MODE:
 		ev->mode = fme->val.u32;
