@@ -244,7 +244,7 @@ int main (int argc, char **argv) {
 	fm.backend = fmb_inotify;
 #endif
 
-	while ((c = getopt (argc, argv, "a:chb:B:d:fjJLnp:P:v")) != -1) {
+	while ((c = getopt (argc, argv, "a:chb:B:d:fjJlLnp:P:v")) != -1) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
@@ -274,6 +274,7 @@ int main (int argc, char **argv) {
 		case 'J':
 			fm.jsonStream = true;
 			break;
+		case 'l':
 		case 'L':
 			list_backends ();
 			return 0;
