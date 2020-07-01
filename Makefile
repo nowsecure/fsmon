@@ -66,7 +66,7 @@ CFLAGS+=-g -ggdb
 
 OBJS=fsmon.o main.o
 
-all: osx
+all: macos
 
 oldios:
 	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
@@ -101,33 +101,33 @@ ios-patch:
 cydia: ios
 	$(MAKE) -C cydia
 
-osx:
-	$(CC) $(CFLAGS) -DTARGET_OSX=1 -o fsmon-osx $(SOURCES) -framework CoreServices
-	strip fsmon-osx
+macos:
+	$(CC) $(CFLAGS) -DTARGET_OSX=1 -o fsmon-macos $(SOURCES) -framework CoreServices
+	strip fsmon-macos
 
-osx-pkg:
+macos-pkg:
 	./pkg.sh
 
 wch:
 	$(WCH_CC) $(CFLAGS) -DTARGET_WATCHOS=1 -o fsmon-wch $(SOURCES)
 
-fat: ios osx wch
+fat: ios macos wch
 	lipo fsmon-ios -thin armv7 -output fsmon-ios-armv7
 	lipo fsmon-ios -thin arm64 -output fsmon-ios-arm64
 	lipo -create -output fsmon \
 		-arch arm64 fsmon-ios-arm64 \
 		-arch armv7 fsmon-ios-armv7 \
 		-arch armv7k fsmon-wch \
-		-arch x86_64 fsmon-osx
+		-arch x86_64 fsmon-macos
 	strip fsmon
 	codesign -s- fsmon
 
 clean:
-	rm -f fsmon-osx fsmon-ios
+	rm -f fsmon-macos fsmon-ios
 	rm -rf fsmon*.dSYM
 	rm -f fsmon-and*
 
-.PHONY: cydia ios osx osx-pkg fat wch
+.PHONY: cydia ios macos macos-pkg fat wch
 
 endif
 
