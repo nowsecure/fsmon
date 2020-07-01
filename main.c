@@ -16,12 +16,12 @@ static bool colorful = true;
 
 FileMonitorBackend *backends[] = {
 #if __APPLE__
-	&fmb_devfsev,
-	&fmb_kqueue,
-	&fmb_kdebug,
 #if !TARGET_WATCHOS
 	&fmb_fsevapi,
 #endif
+	&fmb_devfsev,
+	&fmb_kqueue,
+	&fmb_kdebug,
 #else
 	&fmb_inotify,
 #if HAVE_FANOTIFY
