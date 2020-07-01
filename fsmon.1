@@ -1,11 +1,11 @@
-.Dd Apr 5, 2016
+.Dd Jul 2, 2020
 .Dt FSMON 1
 .Sh NAME
 .Nm fsmon
 .Nd FileSystem events Monitor
 .Sh SYNOPSIS
 .Nm fsmon
-.Op Fl chjfv
+.Op Fl chfjLv
 .Op [-a sec]
 .Op [-b dir]
 .Op [-p pid]
@@ -24,6 +24,9 @@ follow children of -p pid
 show usage help message
 .It Fl j
 output in JSON
+.It Fl l
+.It Fl L
+List all the filesystem monitor backends available
 .It Fl f
 show filename only (no path)
 .It Fl p Ar pid

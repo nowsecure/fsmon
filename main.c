@@ -31,7 +31,7 @@ FileMonitorBackend *backends[] = {
 	NULL
 };
 
-static void control_c (int sig) {
+static void control_c(int sig) {
 	fm.running = false;
 }
 
@@ -170,7 +170,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		}
 	}
 	if (fm->link) {
-		int i;
+		size_t i;
 		char dst[1024];
 		const char *src = ev->file;
 		char *fname = strdup (ev->file);
@@ -219,7 +219,7 @@ static void help (const char *argv0) {
 }
 
 static bool use_backend(const char *name) {
-	int i;
+	size_t i;
 	for (i = 0; backends[i]; i++) {
 		if (!strcmp (backends[i]->name, name)) {
 			fm.backend = *backends[i];
@@ -230,7 +230,7 @@ static bool use_backend(const char *name) {
 }
 
 static void list_backends() {
-	int i;
+	size_t i;
 	for (i = 0; backends[i]; i++) {
 		printf ("%s\n", backends[i]->name);
 	}
