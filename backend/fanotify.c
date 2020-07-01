@@ -55,7 +55,7 @@ static volatile int fan_fd = -1;
 static fd_set rfds;
 #endif
 
-static void fm_control_c() {
+static void fm_control_c(void) {
 	if (fan_fd != -1) {
 		close (fan_fd);
 		fan_fd = -1;

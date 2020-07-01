@@ -1,4 +1,4 @@
-/* fsmon -- MIT - Copyright NowSecure 2016 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2016-2020 - pancake@nowsecure.com  */
 
 #if __linux__
 
@@ -20,7 +20,7 @@
 static int fd = -1;
 #define BUF_LEN (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 
-static void fm_control_c() {
+static void fm_control_c(void) {
 	if (fd != -1) {
 		close (fd);
 		fd = -1;
@@ -68,7 +68,7 @@ static bool invalidPathForFd(int fd) {
 }
 
 static const char *getPathForFd(int fd) {
-	int i;
+	size_t i;
 	if (fd == -1) {
 		return false;
 	}
@@ -81,8 +81,8 @@ static const char *getPathForFd(int fd) {
 	return "";
 }
 
-static void freePathForFd() {
-	int i;
+static void freePathForFd(void) {
+	size_t i;
 	for (i = 0; i < pidpathn; i++) {
 		PidPath *pp = &pidpaths[i];
 		free (pp->path);

@@ -62,7 +62,7 @@
 #include <sys/file.h>
 #include "kdebug.h"
 
-bool kdebug_loop_once();
+bool kdebug_loop_once(void);
 
 #define KDBG_TYPEFILTER_BITMAP_SIZE	        ( (256 * 256) / 8 )
 
@@ -500,7 +500,7 @@ static bool set_enable(bool val) {
 	return true;
 }
 
-static void set_remove() {
+static void set_remove(void) {
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_KDEBUG;
 	mib[2] = KERN_KDREMOVE;
@@ -606,7 +606,7 @@ static void set_pidexclude(int pid, int on_off) {
 }
 
 // XXX not necessary imho
-bool kdebug_stop() {
+bool kdebug_stop(void) {
 	int i;
 	if (!running) {
 		return false;
@@ -642,7 +642,7 @@ int filemgr_index(type) {
 	return (((type >> 2) & 0x3fff));
 }
 
-static bool set_init() {
+static bool set_init(void) {
 	kd_regtype kr = {0};
 	kr.type = KDBG_RANGETYPE;
 	kr.value1 = 0;
@@ -725,7 +725,7 @@ static bool set_numbufs(int nbufs) {
 	return true;
 }
 
-static bool find_proc_names() {
+static bool find_proc_names(void) {
 	size_t bufSize = 0;
 	struct kinfo_proc *kp;
 
@@ -1154,10 +1154,10 @@ static void exit_event(char *sc_name, uintptr_t thread, int type) {
 	delete_event (ti);
 }
 
-static void delete_all_events() {
+static void delete_all_events(void) {
 	th_info_t ti = 0;
 	th_info_t ti_next = 0;
-	int i;
+	size_t i;
 	for (i = 0; i < HASH_SIZE; i++) {
 		for (ti = th_info_hash[i]; ti; ti = ti_next) {
 			ti_next = ti->next;
@@ -1168,10 +1168,10 @@ static void delete_all_events() {
 	}
 }
 
-static void delete_all_map_entries() {
+static void delete_all_map_entries(void) {
 	threadmap_t tme = 0;
 	threadmap_t tme_next = 0;
-	int i;
+	size_t i;
 
 	for (i = 0; i < HASH_SIZE; i++) {
 		for (tme = threadmap_hash[i]; tme; tme = tme_next) {
@@ -1185,7 +1185,7 @@ static void delete_all_map_entries() {
 	}
 }
 
-static bool read_command_map() {
+static bool read_command_map(void) {
 	int i, n_threads = 0;
 	kd_threadmap *mapptr = 0;
 	if (!need_new_map) {
@@ -1218,15 +1218,14 @@ static bool read_command_map() {
 	return true;
 }
 
-bool kdebug_loop_once() {
+bool kdebug_loop_once(void) {
 	th_info_t ti = {0};
-	size_t needed;
 	kd_buf *kd;
 	int i;
 
 	get_bufinfo (&bufinfo);
 	read_command_map ();
-	needed = bufinfo.nkdbufs * sizeof (kd_buf);
+	size_t needed = bufinfo.nkdbufs * sizeof (kd_buf);
 
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_KDEBUG;
@@ -1461,7 +1460,7 @@ void argtopid(char *str) {
 	}
 }
 
-bool kdebug_begin() {
+bool kdebug_begin(void) {
 	if (exclude_default_pids) {
 		argtopid ("iTerm2");
 		argtopid ("Finder");
@@ -1485,7 +1484,7 @@ bool kdebug_begin() {
 }
 
 #if WITH_MAIN
-static void leave() {
+static void leave(void) {
 	(void)kdebug_stop();
 }
 
