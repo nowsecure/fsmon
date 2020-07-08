@@ -232,7 +232,8 @@ static void fm_inotify_add_dirtree(int fd, const char *name) {
 				continue;
 			}
 			path[0] = 0;
-			int len = snprintf (path, sizeof (path) - 1, "%s/%s", name, entry->d_name);
+			const char *n = strcmp (name, "/")? name: "";
+			int len = snprintf (path, sizeof (path) - 1, "%s/%s", n, entry->d_name);
 			if (len < 1) {
 				path[sizeof (path) - 1] = 0;
 			}
@@ -243,14 +244,15 @@ static void fm_inotify_add_dirtree(int fd, const char *name) {
 	closedir (dir);
 }
 
-static bool fm_begin (FileMonitor *fm) {
+static bool fm_begin(FileMonitor *fm) {
 	fm->control_c = fm_control_c;
 	fd = inotify_init ();
 	if (fd == -1) {
 		perror ("inotify_init");
 		return false;
 	}
-	fm_inotify_add_dirtree (fd, fm->root? fm->root: ".");
+	const char *root = fm->root ? fm->root: ".";
+	fm_inotify_add_dirtree (fd, root);
 	return true;
 }
 

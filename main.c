@@ -294,7 +294,16 @@ int main (int argc, char **argv) {
 		}
 	}
 	if (optind < argc) {
-		fm.root = argv[optind];
+		if (optind + 1 < argc) {
+			eprintf ("Warning: Too many arguments passed, capturing events only from the first path.\n");
+		}
+		char * res = realpath (argv[optind], (char *)absroot);
+		if (!res) {
+			eprintf ("Invalid path\n");
+			free (absroot);
+			return 1;
+		}
+		fm.root = (const char *)absroot;
 	}
 	if (fm.child && !fm.pid) {
 		eprintf ("-c requires -p\n");
