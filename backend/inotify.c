@@ -133,7 +133,121 @@ static void lsof(const char *filename) {
 	closedir (d);
 }
 
+static bool uidofpath(const char *str, FileMonitorEvent *ev) {
+        struct stat buf = {0};
+        if (!str || !*str) {
+		return 0;
+	}
+        if (true) { // stat (str, &buf) == -1) {
+		char d[PATH_MAX] = {0};
+		strncpy (d, str, sizeof (d) - 1);
+		d[PATH_MAX - 1] = 0;
+		char *dn = dirname (d);
+		if (dn) {
+			if (stat (dn, &buf) == -1) {
+				return false;
+			}
+		}
+	}
+	ev->uid = buf.st_uid;
+	ev->gid = buf.st_gid;
+	return true;
+}
+
+struct uidcache_t {
+	int uid;
+	int pid;
+	char *name;
+};
+
+#define UIDCACHE_SIZE 1024
+
+struct uidcache_t uidcache[UIDCACHE_SIZE] = {
+	{0}
+};
+
+static bool add_uidcache(int uid, int pid, const char *name) {
+	size_t i;
+	for (i = 0; uidcache[i].name; i++) {
+		// skip empty entries
+	}
+	if (i == UIDCACHE_SIZE - 1) {
+		return false;
+	}
+	uidcache[i].uid = uid;
+	uidcache[i].pid = pid;
+	uidcache[i].name = strdup (name);
+	return true;
+}
+
+static int pidofuid(int uid, FileMonitorEvent *ev) {
+	static char static_name[128];
+	if (uid == 0) {
+		return 0;
+	}
+	size_t i;
+	for (i = 0; uidcache[i].name; i++) {
+		if (uid == uidcache[i].uid) {
+			ev->proc = uidcache[i].name;
+			ev->pid = uidcache[i].pid;
+			return true;
+		}
+	}
+	// stat /proc/*/cwd | grep uid == st_uid
+	DIR *d = opendir ("/proc");
+	struct dirent *entry, *entry2;
+	while ((entry = readdir (d))) {
+		int pid = atoi (entry->d_name);
+		if (pid == 0) {
+			continue;
+		}
+		struct stat buf = {0};
+		char str[64];
+		snprintf (str, sizeof (str), "/proc/%d/task", pid);
+		if (stat (str, &buf) == -1) {
+			closedir (d);
+			continue;
+		}
+		if (buf.st_uid == uid) {
+			if (buf.st_uid != 0) {
+				eprintf ("STAT %d %s%c", buf.st_uid, str, 10);
+			}
+			snprintf (str, sizeof (str), "/proc/%d/status", pid);
+			FILE *f = fopen (str, "r");	
+			if (!f) {
+				closedir (d);
+				continue;
+			}
+			char buf[1024];
+			int res = fread (buf, 1, sizeof (buf) - 1, f);
+			fclose (f);
+			if (res == -1) {
+				continue;
+			}
+			buf[res] = 0;
+			char *name = strstr (buf, "Name:\t");
+			if (name) {
+				name += strlen ("Name:\t");
+				char *nl = strchr (name, 10);
+				if (nl) {
+					*nl = 0;
+					strncpy (static_name, name, sizeof (static_name) - 1);
+					ev->proc = static_name;
+					// eprintf ("APP %s%c", name, 10);
+					add_uidcache (uid, pid, static_name);
+				}
+			}
+			ev->proc = static_name;
+			ev->pid = pid;
+			closedir (d);
+			return pid;
+		}
+	}
+	return 0;
+}
+
 static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEvent *ev) {
+	static int max_queued_events = 0x10000;
 	static char absfile[PATH_MAX];
 	ev->type = FSE_INVALID;
 	if (ie->mask & IN_ACCESS) {
@@ -210,7 +324,12 @@ static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 			int wd = inotify_add_watch (fd, ev->file, IN_ALL_EVENTS);
 			setPathForFd (wd, ev->file);
 		}
+		if (uidofpath (absfile, ev)) {
+			pidofuid (ev->uid, ev);
+		}
+#if 0
 		// lsof (absfile);
+#endif
 	} else {
 		static char fdpath[64];
 		snprintf (fdpath, sizeof (fdpath), "fd(%d)", ie->wd);
