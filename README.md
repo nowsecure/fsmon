@@ -14,19 +14,29 @@ The tool retrieves file system events from a specific directory and shows them i
 
 It is possible to filter the events happening from a specific program name or process id (PID).
 
-	Usage: ./fsmon [-jc] [-a sec] [-b dir] [-B name] [-p pid] [-P proc] [path]
-	 -a [sec]  stop monitoring after N seconds (alarm)
-	 -b [dir]  backup files to DIR folder (EXPERIMENTAL)
-	 -B [name] specify an alternative backend
-	 -c        follow children of -p PID
-	 -f        show only filename (no path)
-	 -h        show this help
-	 -j        output in JSON format
-	 -L        list all filemonitor backends
-	 -p [pid]  only show events from this pid
-	 -P [proc] events only from process name
-	 -v        show version
-	 [path]    only get events from this path
+```
+$ ./fsmon -h
+Usage: ./fsmon-macos [-Jjc] [-a sec] [-b dir] [-B name] [-p pid] [-P proc] [path]
+ -a [sec]  stop monitoring after N seconds (alarm)
+ -b [dir]  backup files to DIR folder (EXPERIMENTAL)
+ -B [name] specify an alternative backend
+ -c        follow children of -p PID
+ -f        show only filename (no path)
+ -h        show this help
+ -j        output in JSON format
+ -J        output in JSON stream format
+ -n        do not use colors
+ -L        list all filemonitor backends
+ -p [pid]  only show events from this pid
+ -P [proc] events only from process name
+ -v        show version
+ [path]    only get events from this path
+Examples:
+ fsmon /data
+ fsmon -J / | jq -r .filename
+ fsmon -B fanotify /home
+$
+```
 
 Backends
 --------
@@ -36,7 +46,7 @@ fsmon filesystem information is taken from different backends depending on the o
 This is the list of backends that can be listed with `fsmon -L`:
 
 * inotify (linux / android)
-* fanotify (linux > 2.6.36 / android 5)
+* fanotify (linux > 2.6.36 / android with custom kernel)
 * devfsev (osx /dev/fsevents - requires root)
 * kqueue (xnu - requires root)
 * kdebug (bsd?, xnu - requires root)
