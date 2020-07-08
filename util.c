@@ -58,6 +58,8 @@ const char *fm_typestr(int type) {
 	switch (type) {
 	case FSE_ARG_DONE: return "FSE_ARG_DONE";
 	case FSE_OPEN: return "FSE_OPEN";
+	case FSE_CLOSE: return "FSE_CLOSE";
+	case FSE_CLOSE_WRITABLE: return "FSE_CLOSE_WRITABLE";
 	case FSE_UNKNOWN: return "FSE_UNKNOWN";
 	}
 	return (type >= 0 && type < FSE_MAX_EVENTS && types[type])? types[type]: "";

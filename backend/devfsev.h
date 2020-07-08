@@ -62,6 +62,9 @@ typedef struct kfs_event_arg {
 #define FSE_XATTR_REMOVED        10
 #define FSE_MAX_EVENTS           11
 
+#define FSE_CLOSE 20
+#define FSE_CLOSE_WRITABLE 21
+
 /* linux specific */
 #define FSE_OPEN -2
 #define FSE_UNKNOWN -3

@@ -122,7 +122,30 @@ static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 	} else if (ie->mask & IN_MOVED_FROM) {
 		ev->type = FSE_RENAME;
 	} else if (ie->mask & IN_MOVED_TO) {
+		// rename in the same directory
 		ev->type = FSE_RENAME;
+	} else if (ie->mask & IN_CLOSE) {
+		ev->type = FSE_CLOSE;
+	} else if (ie->mask & IN_CLOSE_NOWRITE) {
+		ev->type = FSE_CLOSE;
+	} else if (ie->mask & IN_CLOSE_WRITE) {
+		ev->type = FSE_CLOSE_WRITABLE;
+	} else if (ie->mask & IN_IGNORED) {
+		ev->type = FSE_UNKNOWN;
+		eprintf ("Warning: ignored event\n");
+	} else if (ie->mask & IN_UNMOUNT) {
+		ev->type = FSE_CLOSE_WRITABLE;
+		eprintf ("Warning: filesystem was unmounted\n");
+	} else if (ie->mask == IN_Q_OVERFLOW) {
+		char cmd[512];
+		snprintf (cmd, sizeof (cmd) - 1, "sysctl -w fs.inotify.max_queued_events=%d",
+			max_queued_events);
+		max_queued_events += 32768;
+		eprintf ("Warning: inotify event queue is full.\n");
+		eprintf ("Running: %s\n", cmd);
+		system (cmd);
+	} else {
+		eprintf ("Unknown event 0x%04x\n", ie->mask);
 	}
 	#if 0
 	if (i->mask & IN_IGNORED)       printf("IN_IGNORED ");
