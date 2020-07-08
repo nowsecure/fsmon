@@ -260,6 +260,7 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	char buf[BUF_LEN] __attribute__ ((aligned(8)));
 	struct inotify_event *event;
 	FileMonitorEvent ev = { 0 };
+	char absfile[PATH_MAX];
 	int c;
 	char *p;
 	if (fd == -1) {
@@ -271,12 +272,30 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 			invalidPathForFd (fd);
 			return false;
 		}
+		int cookie = 0;
 		for (p = buf; p < buf + c; ) {
 			event = (struct inotify_event *) p;
 			if (parseEvent (fm, event, &ev)) {
-				cb (fm, &ev);
+				if (cookie) {
+					cookie = 0;
+					const char *a = ev.newfile;
+					ev.newfile = ev.file;
+					ev.file = a;
+					cb (fm, &ev);
+				} else {
+					if (event->cookie) {
+						cookie = event->cookie;
+						const char *root = getPathForFd (event->wd);
+						snprintf (absfile, sizeof (absfile), "%s/%s", root, event->name);
+						ev.newfile = absfile;
+					} else {
+						cb (fm, &ev);
+					}
+				}
 			}
-			memset (&ev, 0, sizeof (ev));
+			if (!cookie) {
+				memset (&ev, 0, sizeof (ev));
+			}
 			p += sizeof (struct inotify_event) + event->len;
 		}
 	}

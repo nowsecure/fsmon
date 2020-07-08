@@ -163,7 +163,7 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s -> %s\n",
 				color_begin, fm_typestr (ev->type), color_end,
 				ev->pid, color_begin2, ev->proc? ev->proc: "", color_end, ev->file,
-				ev->newfile);
+				ev->newfile? ev->newfile: "?");
 		} else {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s\n",
 				color_begin, fm_typestr (ev->type), color_end,
@@ -238,6 +238,7 @@ static void list_backends() {
 }
 
 int main (int argc, char **argv) {
+	char *absroot[PATH_MAX];
 	int c, ret = 0;
 #if __APPLE__
 	fm.backend = fmb_devfsev;
