@@ -102,7 +102,7 @@ cydia: ios
 	$(MAKE) -C cydia
 
 macos:
-	$(CC) $(CFLAGS) -DTARGET_OSX=1 -o fsmon-macos $(SOURCES) -framework CoreServices
+	$(CC) $(CFLAGS) -mmacosx-version-min=10.12 -DTARGET_OSX=1 -o fsmon-macos $(SOURCES) -framework CoreServices
 	strip fsmon-macos
 
 macos-pkg:
