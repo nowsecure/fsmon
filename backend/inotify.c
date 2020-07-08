@@ -92,6 +92,40 @@ static void freePathForFd(void) {
 	pidpathn = 0;
 }
 
+/* this is very slow, better not to enable it */
+static void lsof(const char *filename) {
+	DIR *d = opendir ("/proc");
+	struct dirent *entry, *entry2;
+	while ((entry = readdir (d))) {
+		int pid = atoi (entry->d_name);
+		if (!pid) {
+			continue;
+		}
+		if (pid < 500) {
+			continue;
+		}
+		char file[128];
+		snprintf (file, sizeof (file), "/proc/%d/fd", pid);
+		DIR *d2 = opendir (file);
+		if (d2) {
+			char dest[PATH_MAX];
+			while ((entry2 = readdir (d2))) {
+				snprintf (file, sizeof (file), "/proc/%d/fd/%s", pid, entry2->d_name);
+				ssize_t r = readlink (file, dest, sizeof (dest));
+				if (r != -1) {
+					dest[r] = 0;
+					if (!strcmp (filename, dest)) {
+						printf ("PID %d USE %s\n", pid, desc);
+						return;
+					}
+				}
+			}
+			closedir (d2);
+		}
+	}
+	closedir (d);
+}
+
 static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEvent *ev) {
 	static char absfile[PATH_MAX];
 	ev->type = FSE_INVALID;
