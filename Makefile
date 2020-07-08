@@ -82,6 +82,7 @@ ios:
 		-weak_framework CoreServices
 	xcrun --sdk iphoneos strip fsmon-ios
 	xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios
+	ldid2 -Sentitlements.plist fsmon-ios
 
 ios2:
 	$(MAKE) ios
