@@ -7,9 +7,11 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <signal.h>
+#include <libgen.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/inotify.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -95,6 +97,9 @@ static void freePathForFd(void) {
 /* this is very slow, better not to enable it */
 static void lsof(const char *filename) {
 	DIR *d = opendir ("/proc");
+	if (!d) {
+		return;
+	}
 	struct dirent *entry, *entry2;
 	while ((entry = readdir (d))) {
 		int pid = atoi (entry->d_name);
@@ -115,7 +120,9 @@ static void lsof(const char *filename) {
 				if (r != -1) {
 					dest[r] = 0;
 					if (!strcmp (filename, dest)) {
-						printf ("PID %d USE %s\n", pid, desc);
+						printf ("PID %d USE %s\n", pid, dest);
+						closedir (d);
+						closedir (d2);
 						return;
 					}
 				}
@@ -266,13 +273,13 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	if (fd == -1) {
 		return false;
 	}
+	int cookie = 0;
 	for (; fm->running; ) {
 		c = read (fd, buf, BUF_LEN);
 		if (c < 1) {
 			invalidPathForFd (fd);
 			return false;
 		}
-		int cookie = 0;
 		for (p = buf; p < buf + c; ) {
 			event = (struct inotify_event *) p;
 			if (parseEvent (fm, event, &ev)) {
