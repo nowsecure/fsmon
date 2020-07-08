@@ -160,6 +160,8 @@ static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 		} else {
 			if (*ie->name) {
 				snprintf (absfile, sizeof (absfile), "%s", ie->name);
+			} else {
+				*absfile = 0;
 			}
 		}
 		ev->file = absfile;
