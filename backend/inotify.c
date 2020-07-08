@@ -169,8 +169,11 @@ static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 			int wd = inotify_add_watch (fd, ev->file, IN_ALL_EVENTS);
 			setPathForFd (wd, ev->file);
 		}
+		// lsof (absfile);
 	} else {
-		ev->file = "."; // directory itself
+		static char fdpath[64];
+		snprintf (fdpath, sizeof (fdpath), "fd(%d)", ie->wd);
+		ev->file = fdpath;
 	}
 	return true;
 }
