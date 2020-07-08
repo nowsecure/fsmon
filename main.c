@@ -220,6 +220,10 @@ static void help (const char *argv0) {
 		" -P [proc] events only from process name\n"
 		" -v        show version\n"
 		" [path]    only get events from this path\n"
+		"Examples:\n"
+		" fsmon /data\n"
+		" fsmon -J / | jq -r .filename\n"
+		" fsmon -B fanotify /home\n"
 		, argv0);
 }
 
