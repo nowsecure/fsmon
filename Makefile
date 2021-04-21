@@ -50,7 +50,8 @@ IOS_SYSROOT=$(shell xcrun --sdk iphoneos --show-sdk-path)
 IOS_CFLAGS+=-isysroot ${IOS_SYSROOT}
 IOS_CFLAGS+=-fembed-bitcode
 IOS_CFLAGS+=-flto
-#IOS_CFLAGS+=-Wl,-iphoneos_version_min,10.0
+IOS_CFLAGS+=-target arm64-apple-ios10.0
+IOS_CFLAGS+=-miphoneos-version-min=10.0
 IOS_CFLAGS+=-O3 -Wall
 IOS_CC=$(shell xcrun --sdk iphoneos --find clang) $(IOS_CFLAGS)
 
