@@ -309,7 +309,6 @@ int main (int argc, char **argv) {
 		char * res = realpath (argv[optind], (char *)absroot);
 		if (!res) {
 			eprintf ("Invalid path\n");
-			free (absroot);
 			return 1;
 		}
 		fm.root = (const char *)absroot;
