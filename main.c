@@ -102,12 +102,12 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			firstnode = true;
 		}
 		char *filename = fmu_jsonfilter (ev->file);
-		printf ("%s{\"filename\":\"%s\"", (fm->jsonStream || firstnode)? "":",", filename);
+		printf ("%s{\"filename\":\"%s\",", (fm->jsonStream || firstnode)? "":",", filename);
 		if (ev->pid) {
-			printf (",\"pid\":%d", ev->pid);
+			printf ("\"pid\":%d,", ev->pid);
 		}
 		if (ev->uid && ev->gid) {
-			printf (",\"uid\":%d,\"gid\":%d,", ev->uid, ev->gid);
+			printf ("\"uid\":%d,\"gid\":%d,", ev->uid, ev->gid);
 		}
 		firstnode = false;
 		free (filename);
