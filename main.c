@@ -98,6 +98,13 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		}
 	}
 	if (fm->json || fm->jsonStream) {
+		if (fm->fileonly && ev->file) {
+			const char *p = ev->file;
+			for (p = p + strlen (p); p > ev->file; p--) {
+				if (*p == '/')
+					ev->file = p + 1;
+			}
+		}
 		if (fm->jsonStream) {
 			firstnode = true;
 		}
