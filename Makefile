@@ -46,14 +46,25 @@ PREFIX?=/usr/local
 # iOS
 IOS_ARCHS=$(addprefix -arch ,$(ARCHS))
 IOS_CFLAGS+=$(IOS_ARCHS)
-IOS_SYSROOT=$(shell xcrun --sdk iphoneos --show-sdk-path)
 IOS_CFLAGS+=-isysroot ${IOS_SYSROOT}
 IOS_CFLAGS+=-fembed-bitcode
 IOS_CFLAGS+=-flto
 IOS_CFLAGS+=-target arm64-apple-ios10.0
 IOS_CFLAGS+=-miphoneos-version-min=10.0
 IOS_CFLAGS+=-O3 -Wall
+ifeq ($(shell uname -m | grep -E "iPhone|iPad|iPod" > /dev/null ; echo $${?}),0)
+IOS_ON_DEVICE_COMPILE=1
+IOS_SYSROOT=/
+IOS_CC=/usr/bin/clang
+IOS_STRIP=/usr/bin/strip
+LDID=/usr/bin/ldid
+else
+IOS_ON_DEVICE_COMPILE=0
+IOS_SYSROOT=$(shell xcrun --sdk iphoneos --show-sdk-path)
 IOS_CC=$(shell xcrun --sdk iphoneos --find clang) $(IOS_CFLAGS)
+IOS_STRIP=$(shell xcrun --sdk iphoneos strip)
+LDID=ldid2
+endif
 
 # iWatch
 WCH_CFLAGS=-arch armv7k
@@ -73,17 +84,23 @@ oldios:
 	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
 		-framework CoreFoundation \
 		-framework MobileCoreServices
-	xcrun --sdk iphoneos strip fsmon-ios
-	xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios
+	$(IOS_STRIP) fsmon-ios
+	if [ $(IOS_ON_DEVICE_COMPILE) != 1 ]; \
+	then \
+	    xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios; \
+	fi
 
 ios:
 	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
 		-framework CoreFoundation \
 		-weak_framework MobileCoreServices \
 		-weak_framework CoreServices
-	xcrun --sdk iphoneos strip fsmon-ios
-	xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios
-	ldid2 -Sentitlements.plist fsmon-ios
+	$(IOS_STRIP) fsmon-ios
+	if [ $(IOS_ON_DEVICE_COMPILE) != 1 ]; \
+	then \
+	    xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios; \
+	fi
+	$(LDID) -Sentitlements.plist fsmon-ios
 
 ios2:
 	$(MAKE) ios
