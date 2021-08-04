@@ -118,7 +118,7 @@ ios-patch:
 	rm -rf fsmon-ios.fat
 
 cydia: ios
-	$(MAKE) -C cydia
+	$(MAKE) -C dist/cydia
 
 macos:
 	$(CC) $(CFLAGS) -mmacosx-version-min=10.12 -DTARGET_OSX=1 -o fsmon-macos $(SOURCES) -framework CoreServices
