@@ -635,12 +635,14 @@ static void exit_usage(const char *myname) {
 }
 #endif
 
+#if 0
 int filemgr_index(type) {
 	if (type & 0x10000) {
 		return (((type >> 2) & 0x3fff) + 256);
 	}
 	return (((type >> 2) & 0x3fff));
 }
+#endif
 
 static bool set_init(void) {
 	kd_regtype kr = {0};

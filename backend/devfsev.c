@@ -157,7 +157,6 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 	}
 
 	for (; fm->running; ) {
-		int rewind = 0;
 		if (buf_idx == buf_end) {
 			buf_idx = 0;
 		} else if (buf_idx > 0) {
@@ -166,7 +165,7 @@ static bool fm_loop (FileMonitor *fm, FileMonitorCallback cb) {
 				buf_idx = 0;
 			} else {
 				memmove (buf, buf + buf_idx, (buf_end - buf_idx));
-				rewind = buf_idx = (buf_end - buf_idx);
+				buf_idx = (buf_end - buf_idx);
 			}
 		}
 		if (buf_idx > FM_BUFSIZE) {

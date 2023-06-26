@@ -62,7 +62,7 @@ else
 IOS_ON_DEVICE_COMPILE=0
 IOS_SYSROOT=$(shell xcrun --sdk iphoneos --show-sdk-path)
 IOS_CC=$(shell xcrun --sdk iphoneos --find clang) $(IOS_CFLAGS)
-IOS_STRIP=$(shell xcrun --sdk iphoneos strip)
+IOS_STRIP=xcrun --sdk iphoneos strip
 LDID=ldid2
 endif
 
@@ -81,23 +81,19 @@ OBJS=fsmon.o main.o
 all: macos
 
 oldios:
-	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
-		-framework CoreFoundation \
-		-framework MobileCoreServices
+	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) -framework CoreFoundation -framework MobileCoreServices
 	$(IOS_STRIP) fsmon-ios
 	if [ $(IOS_ON_DEVICE_COMPILE) != 1 ]; \
 	then \
 	    xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios; \
 	fi
 
+IOS_FRAMEWORKS=-framework CoreFoundation -weak_framework MobileCoreServices -weak_framework CoreServices
 ios:
-	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) \
-		-framework CoreFoundation \
-		-weak_framework MobileCoreServices \
-		-weak_framework CoreServices
-	$(IOS_STRIP) fsmon-ios
-	if [ $(IOS_ON_DEVICE_COMPILE) != 1 ]; \
-	then \
+	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) $(IOS_FRAMEWORKS)
+	ls -l fsmon-ios
+	-$(IOS_STRIP) fsmon-ios
+	if [ $(IOS_ON_DEVICE_COMPILE) != 1 ]; then \
 	    xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios; \
 	fi
 	$(LDID) -Sentitlements.plist fsmon-ios
