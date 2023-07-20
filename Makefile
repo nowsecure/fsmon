@@ -9,7 +9,19 @@ CFLAGS+=-DFSMON_VERSION=\"$(VERSION)\"
 SOURCES=main.c util.c
 SOURCES+=backend/*.c
 
-ifeq ($(shell uname),Linux)
+TARGET_TRIPLE := $(shell $(CC) -dumpmachine 2>/dev/null)
+
+ifneq ($(findstring -darwin,$(TARGET_MACHINE)),)
+	TARGET_OS_TYPE=Darwin
+else ifneq ($(findstring -linux,$(TARGET_MACHINE)),)
+	TARGET_OS_TYPE=Linux
+else ifneq ($(findstring -android,$(TARGET_MACHINE)),)
+	TARGET_OS_TYPE=Linux
+else
+	TARGET_OS_TYPE=$(shell uname)
+endif
+
+ifeq ($(TARGET_OS_TYPE),Linux)
 
 # LINUX: GNU / ANDROID
 #     __
