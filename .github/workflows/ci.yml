@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+#      - master
+#  pull_request:
+#  schedule:
+#    - cron: '0 0 * * 1'
+
+jobs:
+  watchos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Building
+      run: make wch
+    - uses: actions/upload-artifact@v4
+      with:
+        name: fsmon-wch
+        path: fsmon-wch
+  ios:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Dependencies
+      run: |
+        git clone https://github.com/razum2um/ldid
+        cd ldid && make && cp -f ldid ldid2 /usr/local/bin
+    - name: Building
+      run: make ios
+    - uses: actions/upload-artifact@v4
+      with:
+        name: fsmon-ios
+        path: fsmon-ios
+  macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Building
+      run: make macos
+    - uses: actions/upload-artifact@v4
+      with:
+        name: fsmon-macos
+        path: fsmon-macos
+  linux:
+    name: linux
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Building
+      run: make && mv fsmon fsmon-linux
+    - uses: actions/upload-artifact@v4
+      with:
+        name: fsmon-linux
+        path: fsmon-linux
