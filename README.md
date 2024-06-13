@@ -1,5 +1,6 @@
-fsmon
-=====
+# fsmon
+
+![ci](https://github.com/nowsecure/fsmon/actions/workflows/ci.yml/badge.svg?branch=master)
 
 FileSystem Monitor utility that runs on Linux, Android, iOS and OSX.
 
@@ -7,8 +8,7 @@ Brought to you by Sergi Àlvarez at Nowsecure and distributed under the MIT lice
 
 Contact: pancake@nowsecure.com
 
-Usage
------
+## Usage
 
 The tool retrieves file system events from a specific directory and shows them in colorful format or in JSON.
 
