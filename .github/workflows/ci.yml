@@ -66,8 +66,8 @@ jobs:
       # ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
     - uses: actions/upload-artifact@v4
       with:
-        name: fsmon-linux
-        path: fsmon-linux
+        name: fsmon-andrdoi.zip
+        path: fsmon-and*
   linux:
     name: linux
     runs-on: ubuntu-20.04
