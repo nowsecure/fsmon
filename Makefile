@@ -180,12 +180,19 @@ LOLLIPOP_CFLAGS=-DHAVE_FANOTIFY=1 -DHAVE_SYS_FANOTIFY=0
 
 NDK_ARCH?=
 ANDROID_ARCHS=arm arm64 x86 x86_64
-ANDROID_API?=0
+ANDROID_API?=
 
 ifneq ($(NDK_ARCH),)
 ANDROID_ARCHS=$(NDK_ARCH)
 endif
+ifeq ($(ANDROID_API),)
+AAPIMODE=aagt21compile
+else
 AAPIMODE=$(shell test ${ANDROID_API} -gt 21 && echo aagt21compile || echo aalt21compile)
+endif
+
+andarm64:
+	sh android-shell.sh arm64 make android
 
 and android:
 	for a in $(ANDROID_ARCHS) ; do \

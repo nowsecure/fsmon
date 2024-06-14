@@ -66,12 +66,12 @@ jobs:
       run: |
         export
         export NDK=${ANDROID_NDK_ROOT}
-        make android NDK=${ANDROID_NDK_ROOT} ANDROID_API=r26d
+        sh android-shell.sh arm64 make android
       # ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
     - uses: actions/upload-artifact@v4
       with:
-        name: fsmon-andrdoi.zip
-        path: fsmon-and*
+        name: fsmon-and-arm64
+        path: fsmon-and-arm64
   linux:
     name: linux
     runs-on: ubuntu-20.04
