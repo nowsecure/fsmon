@@ -52,9 +52,28 @@ jobs:
       with:
         name: fsmon-macos
         path: fsmon-macos
+  android:
+    name: android
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r26d
+        local-cache: false
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Building
+      run: |
+        export
+        export NDK=${ANDROID_NDK_ROOT}
+        sh android-shell.sh arm64 make android
+      # ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
+    - uses: actions/upload-artifact@v4
+      with:
+        name: fsmon-and-arm64
+        path: fsmon-and-arm64
   linux:
     name: linux
-    continue-on-error: true
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout

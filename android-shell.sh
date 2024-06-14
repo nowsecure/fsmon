@@ -99,7 +99,7 @@ echo NDK=$NDK
 echo NDK_ARCH=$NDK_ARCH
 
 echo "Building the standalone NDK toolchain..."
-${NDK}/build/tools/make_standalone_toolchain.py --arch=${NDK_ARCH} --install-dir=/tmp/ndk/ --api=28 --force
+"${NDK}/build"/tools/make_standalone_toolchain.py --arch=${NDK_ARCH} --install-dir=/tmp/ndk/ --api=28 --force
 if [ $? != 0 ]; then
 	exit 1
 fi
