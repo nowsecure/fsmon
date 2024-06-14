@@ -35,6 +35,12 @@ jobs:
       with:
         name: fsmon-ios
         path: fsmon-ios
+    - name: Cydia Package
+      run: make -C dist/cydia && cp dist/cydia/*.deb
+    - uses: actions/upload-artifact@v4
+      with:
+        name: *.deb
+        path: *.deb
   macos:
     runs-on: macos-latest
     steps:
