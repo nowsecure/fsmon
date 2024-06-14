@@ -63,7 +63,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Building
-      run: make aagt21compile ANDROID_API=26d
+      run: |
+        export
+        make android NDK=${ANDROID_NDK_HOME}
       # ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
     - uses: actions/upload-artifact@v4
       with:
