@@ -1,4 +1,4 @@
-/* fsmon -- MIT - Copyright NowSecure 2015-2020 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2015-2024 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <string.h>

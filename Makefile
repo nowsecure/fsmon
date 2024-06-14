@@ -95,10 +95,8 @@ all: macos
 oldios:
 	$(IOS_CC) $(CFLAGS) -DTARGET_IOS=1 -o fsmon-ios $(SOURCES) -framework CoreFoundation -framework MobileCoreServices
 	$(IOS_STRIP) fsmon-ios
-	if [ $(IOS_ON_DEVICE_COMPILE) != 1 ]; \
-	then \
-	    xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios; \
-	fi
+	if [ $(IOS_ON_DEVICE_COMPILE) != 1 ]; then \
+		xcrun --sdk iphoneos codesign -f --entitlements ./entitlements.plist -s- fsmon-ios; fi
 
 IOS_FRAMEWORKS=-framework CoreFoundation -weak_framework MobileCoreServices -weak_framework CoreServices
 ios:

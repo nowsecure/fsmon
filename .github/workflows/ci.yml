@@ -25,7 +25,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Dependencies
+    - name: ldid2
       run: |
         git clone https://github.com/razum2um/ldid
         cd ldid && make && cp -f ldid ldid2 /usr/local/bin
@@ -35,6 +35,12 @@ jobs:
       with:
         name: fsmon-ios
         path: fsmon-ios
+    - name: Cydia Package
+      run: make -C dist/cydia && cp -f dist/cydia/fsmon*.deb .
+    - uses: actions/upload-artifact@v4
+      with:
+        name: fsmon-cydia.zip
+        path: fsmon*.deb
   macos:
     runs-on: macos-latest
     steps:

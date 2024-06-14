@@ -1,10 +1,11 @@
 include ./CONFIG
 DEPENDS=
-PACKAGE_DIR?=${PWD}
+PACKAGE_DIR?=$(shell pwd)
 
 all:
 	$(SUDO) $(MAKE) mrproper
 	mkdir -p data root/usr/bin
+	$(MAKE) -C ../.. ios
 	cp -f ../../fsmon-ios root/usr/bin/fsmon
 	chmod +x root/usr/bin/fsmon
 	mkdir -p root/usr/share/man/man1
