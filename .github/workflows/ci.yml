@@ -56,13 +56,14 @@ jobs:
     name: android
     runs-on: ubuntu-22.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
     - uses: nttld/setup-ndk@v1
       with:
         ndk-version: r26d
+        local-cache: true
+    - name: Checkout
+      uses: actions/checkout@v4
     - name: Building
-      run: make and
+      run: make aagt21compile ANDROID_API=26d
       # ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
     - uses: actions/upload-artifact@v4
       with:
