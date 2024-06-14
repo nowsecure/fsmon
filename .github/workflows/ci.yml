@@ -39,7 +39,7 @@ jobs:
       run: make -C dist/cydia && cp -f dist/cydia/fsmon*.deb .
     - uses: actions/upload-artifact@v4
       with:
-        name: fsmon-cydia.deb
+        name: fsmon-cydia.zip
         path: fsmon*.deb
   macos:
     runs-on: macos-latest
