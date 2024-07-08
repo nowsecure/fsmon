@@ -11,11 +11,11 @@ SOURCES+=backend/*.c
 
 TARGET_TRIPLE := $(shell $(CC) -dumpmachine 2>/dev/null)
 
-ifneq ($(findstring -darwin,$(TARGET_MACHINE)),)
+ifneq ($(findstring -darwin,$(TARGET_TRIPLE)),)
 	TARGET_OS_TYPE=Darwin
-else ifneq ($(findstring -linux,$(TARGET_MACHINE)),)
+else ifneq ($(findstring -linux,$(TARGET_TRIPLE)),)
 	TARGET_OS_TYPE=Linux
-else ifneq ($(findstring -android,$(TARGET_MACHINE)),)
+else ifneq ($(findstring -android,$(TARGET_TRIPLE)),)
 	TARGET_OS_TYPE=Linux
 else
 	TARGET_OS_TYPE=$(shell uname)
