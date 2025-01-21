@@ -59,7 +59,6 @@ PREFIX?=/usr/local
 IOS_ARCHS=$(addprefix -arch ,$(ARCHS))
 IOS_CFLAGS+=$(IOS_ARCHS)
 IOS_CFLAGS+=-isysroot ${IOS_SYSROOT}
-IOS_CFLAGS+=-fembed-bitcode
 IOS_CFLAGS+=-flto
 IOS_CFLAGS+=-target arm64-apple-ios10.0
 IOS_CFLAGS+=-miphoneos-version-min=10.0
@@ -75,14 +74,13 @@ IOS_ON_DEVICE_COMPILE=0
 IOS_SYSROOT=$(shell xcrun --sdk iphoneos --show-sdk-path)
 IOS_CC=$(shell xcrun --sdk iphoneos --find clang) $(IOS_CFLAGS)
 IOS_STRIP=xcrun --sdk iphoneos strip
-LDID=ldid2
+LDID=bin/ldid_macosx_$(shell uname -m)
 endif
 
 # iWatch
 WCH_CFLAGS=-arch armv7k
 WCH_SYSROOT=$(shell xcrun --sdk watchos --show-sdk-path)
 WCH_CFLAGS+=-isysroot ${WCH_SYSROOT}
-IOS_CFLAGS+=-fembed-bitcode
 WCH_CC=$(shell xcrun --sdk iphoneos --find clang) $(WCH_CFLAGS)
 
 CC?=gcc
@@ -124,6 +122,7 @@ ios-patch:
 	rm -rf fsmon-ios.fat
 
 cydia: ios
+	rm -rf dist/cydia/out
 	$(MAKE) -C dist/cydia
 
 macos:
