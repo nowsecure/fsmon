@@ -25,10 +25,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: ldid2
-      run: |
-        git clone https://github.com/razum2um/ldid
-        cd ldid && make && cp -f ldid ldid2 /usr/local/bin
     - name: Building
       run: make ios
     - uses: actions/upload-artifact@v4
@@ -74,7 +70,7 @@ jobs:
         path: fsmon-and-arm64
   linux:
     name: linux
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@v4

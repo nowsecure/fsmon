@@ -1,6 +1,5 @@
 PACKAGE=fsmon
 include ../../config.mk
-ARCH=iphoneos-arm
 SECTION=Utilities
 PRIORITY=optional
 MAINTAINER=pancake <pancake@nowsecure.com>

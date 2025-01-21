@@ -1,0 +1,9 @@
+/dist/cydia/build
+/dist/cydia/control
+/dist/cydia/data
+/dist/cydia/out
+/dist/cydia/root
+/dist/cydia/debian-binary
+/dist/cydia/*.deb
+/fsmon-ios
+/fsmon-ios.dSYM
