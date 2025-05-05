@@ -136,6 +136,11 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 			uint64_t now = __sys_now ();
 			printf ("\"time\":%" PRId64 ",", now);
 		}
+		if (fm->show_timestamps) {
+			char datetime[20];
+			time_ymdhms (datetime, sizeof (datetime));
+			printf ("\"datetime\":\"%s\",", datetime);
+		}
 		if (ev->tstamp) {
 			printf ("\"timestamp\":%" PRId64 ",", ev->tstamp);
 		}
