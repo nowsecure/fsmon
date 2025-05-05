@@ -1,4 +1,4 @@
-/* fsmon -- MIT - Copyright NowSecure 2015-2024 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2015-2025 - pancake@nowsecure.com  */
 
 #include <stdio.h>
 #include <string.h>
@@ -8,6 +8,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <time.h>
 #include <sys/time.h>
 #include "fsmon.h"
 
