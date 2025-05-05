@@ -3,80 +3,98 @@ name: CI
 on:
   push:
     branches:
-#      - master
-#  pull_request:
-#  schedule:
-#    - cron: '0 0 * * 1'
+      - master
+    tags:
+      - '\d*'  # This triggers on tags like 1.0, 2.3.4, etc.
 
 jobs:
   watchos:
     runs-on: macos-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Building
-      run: make wch
-    - uses: actions/upload-artifact@v4
-      with:
-        name: fsmon-wch
-        path: fsmon-wch
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Building
+        run: make wch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsmon-wch
+          path: fsmon-wch
+
   ios:
     runs-on: macos-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Building
-      run: make ios
-    - uses: actions/upload-artifact@v4
-      with:
-        name: fsmon-ios
-        path: fsmon-ios
-    - name: Cydia Package
-      run: make -C dist/cydia && cp -f dist/cydia/fsmon*.deb .
-    - uses: actions/upload-artifact@v4
-      with:
-        name: fsmon-cydia.zip
-        path: fsmon*.deb
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Building
+        run: make ios
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsmon-ios
+          path: fsmon-ios
+      - name: Cydia Package
+        run: make -C dist/cydia && cp -f dist/cydia/fsmon*.deb .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsmon-cydia.zip
+          path: fsmon*.deb
+
   macos:
     runs-on: macos-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Building
-      run: make macos
-    - uses: actions/upload-artifact@v4
-      with:
-        name: fsmon-macos
-        path: fsmon-macos
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Building
+        run: make macos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsmon-macos
+          path: fsmon-macos
+
   android:
-    name: android
     runs-on: ubuntu-22.04
     steps:
-    - uses: nttld/setup-ndk@v1
-      with:
-        ndk-version: r26d
-        local-cache: false
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Building
-      run: |
-        export
-        export NDK=${ANDROID_NDK_ROOT}
-        sh android-shell.sh arm64 make android
-      # ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
-    - uses: actions/upload-artifact@v4
-      with:
-        name: fsmon-and-arm64
-        path: fsmon-and-arm64
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+          local-cache: false
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Building
+        run: |
+          export NDK=${ANDROID_NDK_ROOT}
+          sh android-shell.sh arm64 make android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsmon-and-arm64
+          path: fsmon-and-arm64
+
   linux:
-    name: linux
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Building
-      run: make && mv fsmon fsmon-linux
-    - uses: actions/upload-artifact@v4
-      with:
-        name: fsmon-linux
-        path: fsmon-linux
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Building
+        run: make && mv fsmon fsmon-linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fsmon-linux
+          path: fsmon-linux
+
+  release:
+    needs: [watchos, ios, macos, android, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
