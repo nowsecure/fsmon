@@ -54,6 +54,7 @@ struct filemonitor_t {
 	bool jsonStream;
 	volatile sig_atomic_t running;
 	bool fileonly;
+	bool show_timestamps;
 	uint64_t count;
 	void (*control_c)();
 	struct filemonitor_backend_t backend;

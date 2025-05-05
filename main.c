@@ -70,6 +70,17 @@ static uint64_t __sys_now(void) {
 	return ret;
 }
 
+static void time_ymdhms(char *buf, size_t buflen) {
+	struct timeval now;
+	gettimeofday (&now, NULL);
+	struct tm *tm_info = localtime (&now.tv_sec);
+	char time_buf[20];
+	strftime (time_buf, buflen, "%Y%m%d-%H:%M:%S", tm_info);
+	// Append milliseconds
+	int millisec = now.tv_usec / 1000;
+	snprintf(buf, buflen, "%s.%03d", time_buf, millisec);
+}
+
 static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 	if (fm->child) {
 		if (fm->pid && ev->pid != fm->pid) {
@@ -169,6 +180,11 @@ static bool callback(FileMonitor *fm, FileMonitorEvent *ev) {
 		const char *color_begin = colorful? fm_colorstr (ev->type): "";
 		const char *color_begin2 = colorful? Color_MAGENTA: "";
 		const char *color_end = colorful? Color_RESET: "";
+		if (fm->show_timestamps) {
+			char datetime[20];
+			time_ymdhms (datetime, sizeof (datetime));
+			printf ("%s  ", datetime);
+		}
 		// TODO . show event type
 		if (ev->type == FSE_RENAME) {
 			printf ("%s%s%s\t%d\t\"%s%s%s\"\t%s -> %s\n",
@@ -221,10 +237,11 @@ static void help (const char *argv0) {
 		" -h        show this help\n"
 		" -j        output in JSON format\n"
 		" -J        output in JSON stream format\n"
-		" -n        do not use colors\n"
 		" -L        list all filemonitor backends\n"
+		" -n        do not use colors\n"
 		" -p [pid]  only show events from this pid\n"
 		" -P [proc] events only from process name\n"
+		" -t        show timestamps in default logs\n"
 		" -v        show version\n"
 		" [path]    only get events from this path\n"
 		"Examples:\n"
@@ -261,7 +278,7 @@ int main (int argc, char **argv) {
 	fm.backend = fmb_inotify;
 #endif
 
-	while ((c = getopt (argc, argv, "a:chb:B:d:fjJlLnp:P:v")) != -1) {
+	while ((c = getopt (argc, argv, "a:chb:B:d:fjJlLnp:P:vt")) != -1) {
 		switch (c) {
 		case 'a':
 			fm.alarm = atoi (optarg);
@@ -284,6 +301,9 @@ int main (int argc, char **argv) {
 			return 0;
 		case 'f':
 			fm.fileonly = true;
+			break;
+		case 't':
+			fm.show_timestamps = true;
 			break;
 		case 'j':
 			fm.json = true;
