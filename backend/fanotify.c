@@ -78,21 +78,20 @@ static int handle_perm(int fan_fd, struct fanotify_event_metadata *metadata) {
 }
 
 static bool parseFaEvent(FileMonitor *fm, struct fanotify_event_metadata *metadata, FileMonitorEvent *ev) {
-	char path[PATH_MAX];
-	int path_len;
+	char opath[PATH_MAX];
 
 	if (metadata->fd >= 0) {
+		char path[PATH_MAX];
 		sprintf (path, "/proc/self/fd/%d", metadata->fd);
-		path_len = readlink (path, path, sizeof(path)-1);
+		size_t path_len = readlink (path, opath, sizeof (opath) - 1);
 		if (path_len < 0) {
 			return false;
 		}
-		path[path_len] = '\0';
-		//printf ("%s:", path);
+		opath[path_len] = '\0';
 	} else {
-		strcpy (path, ".");
+		strcpy (opath, ".");
 	}
-	ev->file = path;
+	ev->file = opath;
 	ev->pid = metadata->pid;
 	ev->proc = get_proc_name (ev->pid, &ev->ppid);
 	if (metadata->mask & FAN_ACCESS) {

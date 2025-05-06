@@ -1,4 +1,4 @@
-/* fsmon -- MIT - Copyright NowSecure 2016-2020 - pancake@nowsecure.com  */
+/* fsmon -- MIT - Copyright NowSecure 2016-2025 - pancake@nowsecure.com  */
 
 #if __linux__
 
@@ -17,6 +17,8 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include "fsmon.h"
+
+#define USE_LSOF 0
 
 /* INOTIFY */
 static int fd = -1;
@@ -94,6 +96,7 @@ static void freePathForFd(void) {
 	pidpathn = 0;
 }
 
+#if USE_LSOF
 /* this is very slow, better not to enable it */
 static void lsof(const char *filename) {
 	DIR *d = opendir ("/proc");
@@ -132,6 +135,7 @@ static void lsof(const char *filename) {
 	}
 	closedir (d);
 }
+#endif
 
 static bool uidofpath(const char *str, FileMonitorEvent *ev) {
         struct stat buf = {0};
@@ -195,7 +199,7 @@ static int pidofuid(int uid, FileMonitorEvent *ev) {
 	}
 	// stat /proc/*/cwd | grep uid == st_uid
 	DIR *d = opendir ("/proc");
-	struct dirent *entry, *entry2;
+	struct dirent *entry;
 	while ((entry = readdir (d))) {
 		int pid = atoi (entry->d_name);
 		if (pid == 0) {
@@ -327,8 +331,8 @@ static bool parseEvent(FileMonitor *fm, struct inotify_event *ie, FileMonitorEve
 		if (uidofpath (absfile, ev)) {
 			pidofuid (ev->uid, ev);
 		}
-#if 0
-		// lsof (absfile);
+#if USE_LSOF
+		lsof (absfile);
 #endif
 	} else {
 		static char fdpath[64];
