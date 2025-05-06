@@ -30,7 +30,7 @@
 
 #include <sys/inotify.h>
 #if HAVE_FANOTIFY
-#if HAVE_SYS_FANOTIFY
+#if HAVE_SYS_FANOTIFY && __GLIBC__
 #include <sys/fanotify.h>
 #else
 #include <asm/unistd.h>
@@ -39,7 +39,7 @@ static int fanotify_init(unsigned int __flags, unsigned int __event_f_flags) {
 	return syscall (__NR_fanotify_init, __flags, __event_f_flags);
 }
 
-static int fanotify_mark (int __fanotify_fd, unsigned int __flags,
+static int fanotify_mark(int __fanotify_fd, unsigned int __flags,
 	uint64_t __mask, int __dfd, const char *__pathname) {
 	return syscall (__NR_fanotify_mark, __fanotify_fd, __flags, __mask, __dfd, __pathname);
 }
@@ -179,7 +179,7 @@ fail:
 	return false;
 }
 
-static bool fm_begin (FileMonitor *fm) {
+static bool fm_begin(FileMonitor *fm) {
 	uint64_t fan_mask = FAN_OPEN | FAN_CLOSE | FAN_ACCESS | FAN_MODIFY;
 	unsigned int mark_flags = FAN_MARK_ADD, init_flags = 0;
 	struct sigaction sa;
@@ -216,7 +216,7 @@ static bool fm_begin (FileMonitor *fm) {
 	return true;
 }
 
-static bool fm_end (FileMonitor *fm) {
+static bool fm_end(FileMonitor *fm) {
 #define FMCLOSE(x) \
 	if (x != -1) { \
 		close (x); \
