@@ -44,6 +44,8 @@ PREFIX?=/usr
 
 clean:
 	rm -f fsmon
+	rm -rf fsmon-macos* fsmon-ios* fsmon-wch*
+	rm -rf fsmon-and*
 else
 # APPLE: OSX / IOS / IWATCH
 #     _
@@ -128,6 +130,7 @@ cydia: ios
 macos:
 	$(CC) $(CFLAGS) -mmacosx-version-min=10.12 -DTARGET_OSX=1 -o fsmon-macos $(SOURCES) -framework CoreServices
 	strip fsmon-macos
+	cp -f fsmon-macos fsmon
 
 macos-pkg:
 	./pkg.sh
